@@ -32,4 +32,22 @@ class PengajuanKp extends Model
     {
         return $this->hasMany(Konsultasi::class);
     }
+
+    // Relasi ke Seminar
+    public function seminars()
+    {
+        return $this->hasMany(Seminar::class);
+    }
+
+    // Accessor untuk mendapatkan jumlah konsultasi yang sudah diverifikasi
+    public function getJumlahKonsultasiVerifiedAttribute()
+    {
+        return $this->konsultasis()->where('diverifikasi', true)->count();
+    }
+
+    // Accessor untuk mengecek apakah sudah ada pengajuan seminar aktif
+    public function getHasActiveSeminarAttribute()
+    {
+        return $this->seminars()->whereIn('status_pengajuan', ['diajukan_mahasiswa', 'disetujui_dospem', 'dijadwalkan_komisi'])->exists();
+    }
 }

@@ -27,4 +27,9 @@ class SuratPengantar extends Model
     {
         return $this->belongsTo(Mahasiswa::class);
     }
+
+    public function pengajuanKp()
+    {
+        return $this->hasOne(PengajuanKp::class); // Atau hasMany jika satu surat bisa untuk banyak pengajuan KP (jarang terjadi)
+    }
 }

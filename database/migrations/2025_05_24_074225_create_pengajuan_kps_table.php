@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('pengajuan_kps', function (Blueprint $table) {
             $table->id();
-            $table->string('mahasiswa_id')->constrained('mahasiswas')->cascadeOnDelete();
+            $table->foreignId('mahasiswa_id')->constrained('mahasiswas')->cascadeOnDelete();
             $table->foreignId('surat_pengantar_id')->constrained()->cascadeOnDelete();
             $table->foreignId('dosen_pembimbing_id')->nullable()->constrained('dosens')->onDelete('set null');// Menggunakan onDelete('set null') agar jika dosen dihapus, data pengajuan tidak ikut hilang\
             $table->string('judul_kp');
