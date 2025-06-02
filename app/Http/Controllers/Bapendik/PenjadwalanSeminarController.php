@@ -114,11 +114,11 @@ class PenjadwalanSeminarController extends Controller
             return redirect()->back()->with('error', 'Dokumen hanya bisa diekspor untuk seminar yang sudah dijadwalkan.');
         }
 
-        // Path ke file template Word kamu untuk Berita Acara Seminar
+        // Path ke file templates Word kamu untuk Berita Acara Seminar
         $templatePath = storage_path('app/templates/template_berita_acara_seminar.docx'); // Sesuaikan nama filenya
 
         if (!file_exists($templatePath)) {
-            return redirect()->back()->with('error', 'File template Berita Acara Seminar tidak ditemukan.');
+            return redirect()->back()->with('error', 'File templates Berita Acara Seminar tidak ditemukan.');
         }
 
         try {
@@ -133,13 +133,13 @@ class PenjadwalanSeminarController extends Controller
             $jurusanMahasiswa = $dataMahasiswa->jurusan;
             $dosenPembimbingUser = $seminar->pengajuanKp->dosenPembimbing->user;
 
-            // Data pejabat (jika ada di template berita acara, contoh: Ketua Jurusan atau Wadek)
+            // Data pejabat (jika ada di templates berita acara, contoh: Ketua Jurusan atau Wadek)
             // Ini perlu disesuaikan datanya dari mana (config, db, atau hardcode)
             $ketuaJurusanNama = "Nama Ketua Jurusan Placeholder"; // Ganti dengan data asli
             $ketuaJurusanNip = "NIP Ketua Jurusan Placeholder"; // Ganti dengan data asli
 
 
-            // Set nilai untuk placeholder di template
+            // Set nilai untuk placeholder di templates
             $templateProcessor->setValue('NAMA_MAHASISWA', $mahasiswaUser->name ?? 'N/A');
             $templateProcessor->setValue('NIM_MAHASISWA', $dataMahasiswa->nim ?? 'N/A');
             $templateProcessor->setValue('JURUSAN_MAHASISWA', $jurusanMahasiswa->nama ?? 'N/A');

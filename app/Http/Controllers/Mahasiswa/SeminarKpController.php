@@ -20,7 +20,10 @@ class SeminarKpController extends Controller
     {
         $mahasiswaId = Auth::user()->mahasiswa->id;
         $seminars = Seminar::where('mahasiswa_id', $mahasiswaId)
-            ->with(['pengajuanKp.dosenPembimbing.user'])
+            ->with([
+                'pengajuanKp.dosenPembimbing.user',
+                'pengajuanKp.distribusi'
+                ])
             ->latest('tanggal_pengajuan_seminar')
             ->paginate(10);
         return view('mahasiswa.seminar_kp.index', compact('seminars'));

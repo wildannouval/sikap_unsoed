@@ -12,6 +12,13 @@ class PengajuanKp extends Model
 
     // menggunakan guarded agar semua kolom bisa diisi, atau definisikan di $fillable
     protected $guarded = ['id'];
+    protected $casts = [
+        'tanggal_pengajuan' => 'date',
+        'tanggal_mulai' => 'date',
+        'tanggal_selesai' => 'date',
+        'tanggal_diterima_komisi' => 'date',
+        'nilai_akhir_angka' => 'decimal:2',
+    ];
 
     public function mahasiswa()
     {
@@ -49,5 +56,33 @@ class PengajuanKp extends Model
     public function getHasActiveSeminarAttribute()
     {
         return $this->seminars()->whereIn('status_pengajuan', ['diajukan_mahasiswa', 'disetujui_dospem', 'dijadwalkan_komisi'])->exists();
+    }
+
+    public function distribusi()
+    {
+        return $this->hasOne(Distribusi::class, 'pengajuan_kp_id');
+    }
+
+    // Accessor untuk cek apakah sudah dupload bukti distribusi
+    public function getSudahUploadBuktiDistribusiAttribute()
+    {
+        return $this->distribusi()->exists();
+    }
+
+    // Helper untuk konversi nilai angka ke huruf (bisa juga ditaruh di Service Class jika kompleks)
+    // Helper untuk konversi nilai angka ke huruf (bisa juga ditaruh di Service Class jika kompleks)
+    public static function konversiNilaiKeHuruf(float $nilaiAngka = null): ?string
+    {
+        if (is_null($nilaiAngka)) {
+            return null;
+        }
+
+        if ($nilaiAngka >= 80) return 'A';
+        if ($nilaiAngka >= 75) return 'AB';
+        if ($nilaiAngka >= 70) return 'B';
+        if ($nilaiAngka >= 65) return 'BC';
+        if ($nilaiAngka >= 60) return 'C'; // Batas lulus C
+        if ($nilaiAngka >= 50) return 'DC';
+        return 'D';
     }
 }

@@ -125,11 +125,11 @@ class ValidasiSuratController extends Controller
             return redirect()->back()->with('error', 'Surat pengantar belum disetujui atau status tidak valid untuk export.');
         }
 
-        // Path ke file template Word kamu
+        // Path ke file templates Word kamu
         $templatePath = storage_path('app/templates/template_surat_pengantar.docx');
 
         if (!file_exists($templatePath)) {
-            return redirect()->back()->with('error', 'File template surat tidak ditemukan.');
+            return redirect()->back()->with('error', 'File templates surat tidak ditemukan.');
         }
 
         try {
@@ -174,7 +174,7 @@ class ValidasiSuratController extends Controller
             return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
 
         } catch (\PhpOffice\PhpWord\Exception\Exception $e) {
-            // Tangani error jika template korup atau placeholder tidak ditemukan
+            // Tangani error jika templates korup atau placeholder tidak ditemukan
             return redirect()->back()->with('error', 'Gagal membuat dokumen: ' . $e->getMessage());
         }
     }

@@ -9,6 +9,12 @@ class Distribusi extends Model
 {
     use HasFactory;
 
+    protected $table = 'distribusis';
+    protected $guarded = ['id'];
+    protected $casts = [
+        'tanggal_distribusi' => 'date',
+    ];
+
     // Relasi: Catatan distribusi ini milik satu pengajuan Kp
     public function pengajuanKp()
     {

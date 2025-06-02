@@ -1,22 +1,22 @@
 @php use Illuminate\Support\Facades\Auth; @endphp
 <!doctype html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1,minimum-scale=1" name="viewport">
     <meta content="ie=edge" http-equiv="X-UA-Compatible">
     <title>SIKAP - @yield('title')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script>
-        // On page load or when changing themes, best to add inline in `head` to avoid FOUC
-        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark')
-        }
-    </script>
+{{--    <script>--}}
+{{--        // Script untuk menerapkan tema dari localStorage sebelum halaman render untuk menghindari FOUC (Flash of Unstyled Content)--}}
+{{--        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {--}}
+{{--            document.documentElement.classList.add('dark');--}}
+{{--        } else {--}}
+{{--            document.documentElement.classList.remove('dark');--}}
+{{--        }--}}
+{{--    </script>--}}
 </head>
-<body>
+<body class="bg-gray-50 dark:bg-gray-900">
 @include('main.navbar')
 
 <div>

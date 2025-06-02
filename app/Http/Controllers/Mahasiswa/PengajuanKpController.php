@@ -17,7 +17,14 @@ class PengajuanKpController extends Controller
     {
         $mahasiswaId = Auth::user()->mahasiswa->id;
         $pengajuanKps = PengajuanKp::where('mahasiswa_id', $mahasiswaId)
-            ->with(['suratPengantar', 'dosenPembimbing.user', 'seminars']) // Eager load relasi
+            ->with([
+                'suratPengantar',
+                'dosenPembimbing.user',
+                'seminars' => function($query){ // Ambil seminar terkait
+                    $query->orderBy('created_at', 'desc'); // Ambil yang terbaru jika ada banyak
+                },
+                'distribusi' // Eager load relasi distribusi
+            ])
             ->latest()
             ->paginate(10);
 

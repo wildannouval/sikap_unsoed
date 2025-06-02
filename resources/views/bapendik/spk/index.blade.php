@@ -1,6 +1,6 @@
 @extends('main.app')
 
-@section('title', 'Daftar KP Siap SPK & Export')
+@section('title', 'Manajemen & Export SPK')
 
 @section('content')
     <section class="p-3 sm:p-5 antialiased">
@@ -25,11 +25,11 @@
                 <form method="GET" action="{{ route('bapendik.spk.index') }}">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 p-4">
                         <div>
-                            <label for="search" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cari (Nama/NIM/Judul/Instansi)</label>
+                            <label for="search" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cari (Nama Mhs/NIM/Judul/Instansi)</label>
                             <input type="text" name="search" id="search" value="{{ $request->search ?? '' }}" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Kata kunci...">
                         </div>
                         <div>
-                            <label for="jurusan_id" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Jurusan Mahasiswa</label>
+                            <label for="jurusan_id" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Filter Jurusan</label>
                             <select name="jurusan_id" id="jurusan_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
                                 <option value="">Semua Jurusan</option>
                                 @foreach ($jurusans as $jurusan)
@@ -59,7 +59,7 @@
                         <tbody>
                         @forelse ($pengajuanKps as $pengajuan)
                             <tr class="border-b dark:border-gray-700">
-                                <td class="px-4 py-3">{{ \Carbon\Carbon::parse($pengajuan->tanggal_diterima_komisi)->isoFormat('D MMM YY') }}</td>
+                                <td class="px-4 py-3">{{ $pengajuan->tanggal_diterima_komisi ? \Carbon\Carbon::parse($pengajuan->tanggal_diterima_komisi)->isoFormat('D MMM YY') : 'N/A' }}</td>
                                 <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ $pengajuan->mahasiswa->user->name ?? 'N/A' }}</td>
                                 <td class="px-4 py-3">{{ $pengajuan->mahasiswa->nim ?? 'N/A' }}</td>
                                 <td class="px-4 py-3">{{ Str::limit($pengajuan->judul_kp, 30) }}</td>
@@ -74,7 +74,7 @@
                         @empty
                             <tr>
                                 <td colspan="7" class="px-4 py-3 text-center text-gray-500 dark:text-gray-400">
-                                    Tidak ada pengajuan KP yang siap untuk SPK.
+                                    Tidak ada pengajuan KP yang siap untuk dibuatkan SPK.
                                 </td>
                             </tr>
                         @endforelse

@@ -53,9 +53,10 @@ Route::middleware('auth')->group(function () {
 
     // Group per role
     Route::prefix('bapendik')->middleware(['auth','role:bapendik'])->name('bapendik.')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('bapendik.dashboard');
-        })->name('dashboard');
+//        Route::get('/dashboard', function () {
+//            return view('bapendik.dashboard');
+//        })->name('dashboard');
+        Route::get('/dashboard', [\App\Http\Controllers\Bapendik\DashboardController::class, 'index'])->name('dashboard');
 
         // Fitur Juragan
         Route::resource('jurusan',JurusanController::class);
@@ -92,9 +93,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('mahasiswa')->middleware(['auth','role:mahasiswa'])->name('mahasiswa.')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('mahasiswa.dashboard');
-        })->name('dashboard');
+        Route::get('/dashboard', [\App\Http\Controllers\Mahasiswa\DashboardController::class, 'index'])->name('dashboard');
 
         // Route untuk Surat Pengantar Mahasiswa
         Route::get('/surat-pengantar', [SuratPengantarController::class, 'index'])->name('surat-pengantar.index');
@@ -126,12 +125,25 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/seminar', [\App\Http\Controllers\Mahasiswa\SeminarKpController::class, 'index'])
             ->name('seminar.index'); // Untuk mahasiswa melihat daftar/status seminarnya
+
+        // ROUTE BARU UNTUK UPLOAD BUKTI DISTRIBUSI LAPORAN (NESTED DI BAWAH PENGAJUAN KP)
+        Route::get('/pengajuan-kp/{pengajuanKp}/distribusi/create', [\App\Http\Controllers\Mahasiswa\DistribusiLaporanController::class, 'create'])
+            ->name('pengajuan-kp.distribusi.create');
+        Route::post('/pengajuan-kp/{pengajuanKp}/distribusi', [\App\Http\Controllers\Mahasiswa\DistribusiLaporanController::class, 'store'])
+            ->name('pengajuan-kp.distribusi.store');
+
+        // Opsional: Jika mahasiswa perlu melihat detail bukti distribusi yang sudah diupload
+        // Route::get('/pengajuan-kp/{pengajuanKp}/distribusi', [\App\Http\Controllers\Mahasiswa\DistribusiLaporanController::class, 'show'])
+        //     ->name('pengajuan-kp.distribusi.show');
+
+
     });
 
     Route::prefix('dosen-pembimbing')->middleware(['auth','role:dosen_pembimbing'])->name('dosen-pembimbing.')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('dosen-pembimbing.dashboard');
-        })->name('dashboard');
+//        Route::get('/dashboard', function () {
+//            return view('dosen-pembimbing.dashboard');
+//        })->name('dashboard');
+        Route::get('/dashboard', [\App\Http\Controllers\DosenPembimbing\DashboardController::class, 'index'])->name('dashboard');
 
         // ROUTE UNTUK MENAMPILKAN DAFTAR MAHASISWA BIMBINGAN KP
         Route::get('/bimbingan-kp', [\App\Http\Controllers\DosenPembimbing\BimbinganKpController::class, 'index'])
@@ -151,12 +163,21 @@ Route::middleware('auth')->group(function () {
             ->name('seminar-approval.showForm'); // Menggunakan 'showForm' agar tidak bentrok dengan 'show' jika ada nanti
         Route::post('/persetujuan-seminar/{seminar}', [\App\Http\Controllers\DosenPembimbing\SeminarApprovalController::class, 'processApproval'])
             ->name('seminar-approval.process');
+
+        // ROUTE BARU UNTUK PENILAIAN SEMINAR KP
+        Route::get('/penilaian-seminar', [\App\Http\Controllers\DosenPembimbing\PenilaianSeminarController::class, 'index'])
+            ->name('penilaian-seminar.index');
+        Route::get('/penilaian-seminar/{seminar}/input-hasil', [\App\Http\Controllers\DosenPembimbing\PenilaianSeminarController::class, 'editHasil'])
+            ->name('penilaian-seminar.editHasil'); // Form untuk input nilai & BA
+        Route::put('/penilaian-seminar/{seminar}/simpan-hasil', [\App\Http\Controllers\DosenPembimbing\PenilaianSeminarController::class, 'updateHasil'])
+            ->name('penilaian-seminar.updateHasil'); // Menyimpan hasil penilaian
     });
 
     Route::prefix('dosen-komisi')->middleware(['auth','role:dosen_komisi'])->name('dosen-komisi.')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('dosen-komisi.dashboard');
-        })->name('dashboard');
+//        Route::get('/dashboard', function () {
+//            return view('dosen-komisi.dashboard');
+//        })->name('dashboard');
+        Route::get('/dashboard', [\App\Http\Controllers\DosenKomisi\DashboardController::class, 'index'])->name('dashboard');
 
         // TAMBAHKAN ROUTE RESOURCE INI UNTUK VALIDASI PENGAJUAN KP
         // Kita akan menggunakan method index, edit, dan update
