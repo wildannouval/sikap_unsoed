@@ -174,6 +174,7 @@ class PenggunaController extends Controller
             $rules['tahun_masuk'] = ['required', 'numeric', 'digits:4']; // Validasi untuk tahun_masuk
         } elseif ($pengguna->role === 'dosen') {
             $rules['nidn'] = ['required', 'string', Rule::unique('dosens', 'nidn')->ignore($pengguna->dosen?->id)];
+            $rules['is_komisi'] = ['nullable','boolean'];
         }
 
         $request->validate($rules);
@@ -193,8 +194,10 @@ class PenggunaController extends Controller
                 ]);
             } elseif ($pengguna->role === 'dosen' && $pengguna->dosen) {
                 $pengguna->dosen->update([
-                    'jurusan_id' => $request->jurusan_id,
                     'nidn' => $request->nidn,
+                    'bidang_keahlian' => $request->bidang_keahlian,
+                    'jurusan_id' => $request->jurusan_id,
+                    'is_komisi' => $request->has('is_komisi') ? true : false,
                 ]);
             }
         });

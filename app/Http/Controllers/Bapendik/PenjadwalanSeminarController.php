@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\Bapendik; // Pastikan namespace-nya Bapendik
 
 use App\Http\Controllers\Controller;
+use App\Models\Ruangan;
 use App\Models\Seminar;
 use App\Models\Jurusan;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use PhpOffice\PhpWord\TemplateProcessor;
+
 // Auth mungkin tidak terlalu relevan di sini karena akses sudah diproteksi role Bapendik
 // tapi bisa digunakan jika ada logika terkait user Bapendik yang melakukan aksi.
 
@@ -67,10 +72,11 @@ class PenjadwalanSeminarController extends Controller
         }
 
         $seminar->load(['mahasiswa.user', 'mahasiswa.jurusan', 'pengajuanKp.dosenPembimbing.user']);
+        $daftarRuangan = Ruangan::orderBy('nama_ruangan')->get(); // Tampilkan semua, Bapendik yang putuskan
         // $daftarRuangan = Ruangan::all(); // Jika ada master data ruangan
         // $daftarPenguji = User::where('role', 'dosen')->whereHas('dosen')->get(); // Untuk memilih penguji
 
-        return view('bapendik.penjadwalan_seminar.edit', compact('seminar'/*, 'daftarRuangan', 'daftarPenguji'*/));
+        return view('bapendik.penjadwalan_seminar.edit', compact('seminar', 'daftarRuangan',/* 'daftarPenguji'*/));
     }
 
     public function updateJadwal(Request $request, Seminar $seminar)
@@ -109,69 +115,88 @@ class PenjadwalanSeminarController extends Controller
     }
     public function exportBeritaAcaraWord(Seminar $seminar)
     {
-        // Pastikan seminar sudah dijadwalkan
-        if ($seminar->status_pengajuan !== 'dijadwalkan_komisi') {
-            return redirect()->back()->with('error', 'Dokumen hanya bisa diekspor untuk seminar yang sudah dijadwalkan.');
+        // Pastikan seminar sudah dijadwalkan oleh Komisi/Bapendik
+        if ($seminar->status_pengajuan !== 'dijadwalkan_komisi' && $seminar->status_pengajuan !== 'selesai_dinilai') {
+            return redirect()->back()->with('error', 'Dokumen Berita Acara hanya bisa diekspor untuk seminar yang sudah dijadwalkan atau selesai dinilai.');
         }
 
-        // Path ke file templates Word kamu untuk Berita Acara Seminar
-        $templatePath = storage_path('app/templates/template_berita_acara_seminar.docx'); // Sesuaikan nama filenya
+        $templatePath = storage_path('app/templates/template_berita_acara_seminar.docx'); // Pastikan nama file template benar
 
         if (!file_exists($templatePath)) {
-            return redirect()->back()->with('error', 'File templates Berita Acara Seminar tidak ditemukan.');
+            return redirect()->back()->with('error', 'File template Blangko Berita Acara Seminar tidak ditemukan.');
         }
 
         try {
             $templateProcessor = new TemplateProcessor($templatePath);
 
-            // Load relasi yang dibutuhkan jika belum ter-load
-            $seminar->load(['mahasiswa.user', 'mahasiswa.jurusan', 'pengajuanKp.dosenPembimbing.user']);
+            // Load relasi yang dibutuhkan
+            $seminar->load(['mahasiswa.user', 'mahasiswa.jurusan', 'pengajuanKp.dosenPembimbing.user', 'pengajuanKp.dosenPembimbing.jurusan']);
 
             // Siapkan data
             $mahasiswaUser = $seminar->mahasiswa->user;
             $dataMahasiswa = $seminar->mahasiswa;
             $jurusanMahasiswa = $dataMahasiswa->jurusan;
             $dosenPembimbingUser = $seminar->pengajuanKp->dosenPembimbing->user;
+            $dataDosenPembimbing = $seminar->pengajuanKp->dosenPembimbing;
 
-            // Data pejabat (jika ada di templates berita acara, contoh: Ketua Jurusan atau Wadek)
-            // Ini perlu disesuaikan datanya dari mana (config, db, atau hardcode)
-            $ketuaJurusanNama = "Nama Ketua Jurusan Placeholder"; // Ganti dengan data asli
-            $ketuaJurusanNip = "NIP Ketua Jurusan Placeholder"; // Ganti dengan data asli
+            // Data Penandatangan Berita Acara (misalnya Ketua Jurusan atau Koordinator KP)
+            // Sesuaikan dengan kebutuhan di institusimu
+            $namaPenandatanganBA = "Dr. Nama Ketua Jurusan, S.Kom., M.Kom."; // Contoh
+            $nipPenandatanganBA = "197XXXXXXX200XXXXX"; // Contoh
 
+            // Nomor Berita Acara (jika ada format khusus, atau bisa dikosongkan untuk diisi manual)
+            $nomorBeritaAcara = "BA/{$seminar->id}/{$jurusanMahasiswa->kode}/SEM/" . Carbon::parse($seminar->tanggal_seminar)->format('m/Y');
 
-            // Set nilai untuk placeholder di templates
+            // Mengisi placeholder
+            // Data Surat
+            $templateProcessor->setValue('NOMOR_BERITA_ACARA', $nomorBeritaAcara);
+            $templateProcessor->setValue('HARI_SEMINAR', $seminar->tanggal_seminar ? Carbon::parse($seminar->tanggal_seminar)->isoFormat('dddd') : 'N/A');
+            $templateProcessor->setValue('TANGGAL_SEMINAR_LENGKAP', $seminar->tanggal_seminar ? Carbon::parse($seminar->tanggal_seminar)->isoFormat('D MMMM YYYY') : 'N/A');
+            $templateProcessor->setValue('JAM_MULAI_SEMINAR', $seminar->jam_mulai ? Carbon::parse($seminar->jam_mulai)->format('H:i') : 'N/A');
+            $templateProcessor->setValue('JAM_SELESAI_SEMINAR', $seminar->jam_selesai ? Carbon::parse($seminar->jam_selesai)->format('H:i') : 'N/A');
+            $templateProcessor->setValue('RUANGAN_SEMINAR', $seminar->ruangan ?? 'N/A');
+
+            // Data Mahasiswa
             $templateProcessor->setValue('NAMA_MAHASISWA', $mahasiswaUser->name ?? 'N/A');
             $templateProcessor->setValue('NIM_MAHASISWA', $dataMahasiswa->nim ?? 'N/A');
             $templateProcessor->setValue('JURUSAN_MAHASISWA', $jurusanMahasiswa->nama ?? 'N/A');
             $templateProcessor->setValue('JUDUL_KP_FINAL', $seminar->judul_kp_final ?? 'N/A');
 
-            $templateProcessor->setValue('TANGGAL_SEMINAR_FIX', $seminar->tanggal_seminar ? Carbon::parse($seminar->tanggal_seminar)->isoFormat('dddd, D MMMM YYYY') : 'N/A');
-            $templateProcessor->setValue('JAM_MULAI_FIX', $seminar->jam_mulai ? Carbon::parse($seminar->jam_mulai)->format('H:i') : 'N/A');
-            $templateProcessor->setValue('JAM_SELESAI_FIX', $seminar->jam_selesai ? Carbon::parse($seminar->jam_selesai)->format('H:i') : 'N/A');
-            $templateProcessor->setValue('RUANGAN_FIX', $seminar->ruangan ?? 'N/A');
-
+            // Data Dosen Pembimbing
             $templateProcessor->setValue('NAMA_DOSEN_PEMBIMBING', $dosenPembimbingUser->name ?? 'N/A');
-            $templateProcessor->setValue('NIDN_DOSEN_PEMBIMBING', $seminar->pengajuanKp->dosenPembimbing->nidn ?? 'N/A'); // Ambil NIDN dari tabel dosens
+            $templateProcessor->setValue('NIDN_DOSEN_PEMBIMBING', $dataDosenPembimbing->nidn ?? ($dataDosenPembimbing->nip ?? 'N/A')); // Prioritaskan NIDN
 
-            // Placeholder untuk penguji (jika sudah ada fiturnya, jika belum, biarkan kosong atau isi strip)
-            $templateProcessor->setValue('NAMA_DOSEN_PENGUJI_1', '(Nama Penguji 1)'); // Ganti jika ada data
-            $templateProcessor->setValue('NIP_NIDN_PENGUJI_1', '(NIP/NIDN Penguji 1)'); // Ganti jika ada data
-            // $templateProcessor->setValue('NAMA_DOSEN_PENGUJI_2', '(Nama Penguji 2)'); // Jika ada penguji 2
-            // $templateProcessor->setValue('NIP_NIDN_PENGUJI_2', '(NIP/NIDN Penguji 2)');
+            // Placeholder untuk penguji (jika belum ada sistemnya, bisa dikosongkan atau diisi strip di template)
+            // Jika sudah ada, ambil datanya dari relasi Seminar ke DosenPenguji
+            $templateProcessor->setValue('NAMA_DOSEN_PENGUJI_1', '(Nama Dosen Penguji 1)');
+            $templateProcessor->setValue('NIDN_DOSEN_PENGUJI_1', '(NIDN Penguji 1)');
+            // $templateProcessor->setValue('NAMA_DOSEN_PENGUJI_2', '(Nama Dosen Penguji 2)');
+            // $templateProcessor->setValue('NIDN_DOSEN_PENGUJI_2', '(NIDN Penguji 2)');
 
-            $templateProcessor->setValue('KETUA_JURUSAN_NAMA', $ketuaJurusanNama); // Sesuaikan
-            $templateProcessor->setValue('KETUA_JURUSAN_NIP', $ketuaJurusanNip);   // Sesuaikan
+            // Tanggal Cetak/Pengesahan Berita Acara
+            $templateProcessor->setValue('TANGGAL_CETAK_BERITA_ACARA', Carbon::now()->isoFormat('D MMMM YYYY'));
+            $templateProcessor->setValue('TEMPAT_PENERBITAN_BA', 'Purbalingga'); // Sesuaikan
 
-            // Nama file yang akan diunduh
-            $fileName = 'Blangko_Berita_Acara_Seminar_' . Str::slug($mahasiswaUser->name ?? 'mahasiswa', '_') . '.docx';
+            // Data Penandatangan (misalnya Ketua Jurusan atau pejabat lain)
+            $templateProcessor->setValue('JABATAN_PENANDATANGAN_BA', "Ketua Jurusan " . ($jurusanMahasiswa->nama ?? ''));
+            $templateProcessor->setValue('NAMA_PENANDATANGAN_BA', $namaPenandatanganBA);
+            $templateProcessor->setValue('NIP_PENANDATANGAN_BA', $nipPenandatanganBA);
 
-            $tempFile = tempnam(sys_get_temp_dir(), 'PHPWord_BAS');
+
+            $safeMahasiswaName = Str::slug($mahasiswaUser->name ?? 'mahasiswa', '_');
+            $fileName = 'Blangko_BA_Seminar_' . $dataMahasiswa->nim . '_' . $safeMahasiswaName . '.docx';
+
+            $tempFile = tempnam(sys_get_temp_dir(), 'PHPWord_BASeminar_');
             $templateProcessor->saveAs($tempFile);
 
             return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
 
         } catch (\PhpOffice\PhpWord\Exception\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal membuat dokumen Berita Acara: ' . $e->getMessage());
+            // Log::error('PHPWord Exception for Berita Acara: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal membuat dokumen Berita Acara Seminar: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            // Log::error('General Exception for Berita Acara: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal membuat dokumen Berita Acara Seminar: Terjadi kesalahan umum.');
         }
     }
 }

@@ -110,6 +110,13 @@
                     <span class="flex-1 ms-3 whitespace-nowrap {{ Route::is('bapendik.spk.*') ? 'font-semibold' : '' }}">Manajemen SPK</span>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('bapendik.ruangan.index') }}"
+                   class="flex items-center p-3 rounded-lg group {{ Route::is('bapendik.ruangan.*') ? 'bg-blue-100 text-blue-700 dark:bg-gray-700 dark:text-blue-300' : 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                    <svg class="shrink-0 w-5 h-5 transition duration-75 {{ Route::is('bapendik.ruangan.*') ? 'text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 3a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H4Zm10 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm-4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm8 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm-4 4a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm-4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm8 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm-4 4a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm-4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm8 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/></svg>
+                    <span class="flex-1 ms-3 whitespace-nowrap {{ Route::is('bapendik.ruangan.*') ? 'font-semibold' : '' }}">Manajemen Ruangan</span>
+                </a>
+            </li>
         </ul>
     </div>
 </aside>

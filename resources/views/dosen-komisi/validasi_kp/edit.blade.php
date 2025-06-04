@@ -100,7 +100,7 @@
                             @error('tanggal_mulai_kp') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label for="tanggal_selesai_kp" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tanggal Selesai KP <span class="text-red-500">*</span></label>
+                            <label for="tanggal_selesai_kp" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tanggal Selesai KP (Optional)</label>
                             <input type="date" name="tanggal_selesai_kp" id="tanggal_selesai_kp" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600" value="{{ old('tanggal_selesai_kp', $pengajuanKp->tanggal_selesai_kp ? \Carbon\Carbon::parse($pengajuanKp->tanggal_selesai_kp)->format('Y-m-d') : '') }}">
                             @error('tanggal_selesai_kp') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                         </div>
@@ -144,7 +144,7 @@
                     dosenPembimbingSelect.required = true;
                     tanggalKpDiv.style.display = 'grid'; // atau 'block' jika tidak mau grid
                     tanggalMulaiInput.required = true;
-                    tanggalSelesaiInput.required = true;
+                    tanggalSelesaiInput.required = false;
                     alasanDitolakDiv.style.display = 'none';
                     alasanDitolakTextarea.required = false;
                 } else if (statusSelect.value === 'ditolak') {

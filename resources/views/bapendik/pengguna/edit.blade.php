@@ -60,6 +60,13 @@
                                 <input type="text" name="nidn" id="nidn" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" value="{{ old('nidn', $pengguna->dosen->nidn) }}">
                                 @error('nidn') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
+                            <div class="sm:col-span-2 mt-4">
+                                <label for="is_komisi" class="flex items-center text-sm font-medium text-gray-900 dark:text-white">
+                                    <input id="is_komisi" name="is_komisi" type="checkbox" value="1" {{ (old('is_komisi', $pengguna->dosen->is_komisi) == 1) ? 'checked' : '' }} class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                    <span class="ms-2">Jadikan Anggota Komisi KP</span>
+                                </label>
+                                @error('is_komisi') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
+                            </div>
                         @endif
                     </div>
                     <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5">Update</button>

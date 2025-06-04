@@ -82,9 +82,9 @@ class SpkController extends Controller
 
             // Data pejabat yang menerbitkan SPK (contoh, sesuaikan dengan institusimu)
             // Ini bisa diambil dari database (tabel pejabat/users dengan role tertentu) atau config
-            $pejabatSpkNama = "Dr. Eng. Suroso, S.T., M.Eng."; // Contoh Nama
-            $pejabatSpkJabatan = "Wakil Dekan Bidang Akademik"; // Contoh Jabatan
-            $pejabatSpkNip = "197406022003121001"; // Contoh NIP
+            $pejabatSpkNama = "Dr. Lasmedi Afuan, ST M.Cs"; // Contoh Nama
+            $pejabatSpkJabatan = "Ketua Jurusan "; // Contoh Jabatan
+            $pejabatSpkNip = "198505102008121002"; // Contoh NIP
 
             // Contoh format Nomor SPK (sesuaikan dengan format di institusimu)
             // Format: ID_Pengajuan/SPK/KodeFakultas/KodeJurusan/BulanRomawi/Tahun

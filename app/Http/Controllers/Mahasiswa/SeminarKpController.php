@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Mahasiswa;
 use App\Http\Controllers\Controller;
 use App\Models\Konsultasi;
 use App\Models\PengajuanKp;
+use App\Models\Ruangan;
 use App\Models\Seminar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -56,7 +57,10 @@ class SeminarKpController extends Controller
                 ->with('info', 'Anda sudah mengajukan seminar untuk KP ini dan sedang diproses atau sudah dijadwalkan.');
         }
 
-        return view('mahasiswa.seminar_kp.create', compact('pengajuanKp', 'jumlahKonsultasiVerified'));
+        // Ambil daftar ruangan yang tersedia
+        $daftarRuangan = Ruangan::where('is_tersedia', true)->orderBy('nama_ruangan')->get();
+
+        return view('mahasiswa.seminar_kp.create', compact('pengajuanKp', 'jumlahKonsultasiVerified','daftarRuangan'));
     }
 
     /**

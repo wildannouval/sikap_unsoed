@@ -32,13 +32,16 @@
     @elseif($role === 'bapendik')
         @include('main.sidebar.bapendik')
     @elseif($role === 'dosen')
+        {{-- Selalu tampilkan sidebar Dosen Pembimbing untuk semua dosen --}}
+        @include('main.sidebar.dosen-pembimbing')
+
         {{-- Jika rolenya adalah dosen, cek flag is_komisi --}}
-        @if($user->dosen && $user->dosen->is_komisi)
-            @include('main.sidebar.dosen-komisi')
-        @else
-            {{-- Jika bukan komisi, atau tidak ada profil dosen (fallback), tampilkan sidebar dosen pembimbing --}}
-            @include('main.sidebar.dosen-pembimbing')
-        @endif
+{{--        @if($user->dosen && $user->dosen->is_komisi)--}}
+{{--            @include('main.sidebar.dosen-komisi')--}}
+{{--        @else--}}
+{{--            --}}{{-- Jika bukan komisi, atau tidak ada profil dosen (fallback), tampilkan sidebar dosen pembimbing --}}
+{{--            @include('main.sidebar.dosen-pembimbing')--}}
+{{--        @endif--}}
     @endif
     {{-- Kamu bisa menambahkan @else jika ada halaman untuk guest yang pakai layout ini --}}
     @endif

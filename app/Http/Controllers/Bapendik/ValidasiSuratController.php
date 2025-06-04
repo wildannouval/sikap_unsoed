@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Jurusan;
 use App\Models\SuratPengantar;
 use Illuminate\Http\Request;
+use PhpOffice\PhpWord\TemplateProcessor;
+use Illuminate\Support\Facades\Auth; // Jika diperlukan
+use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class ValidasiSuratController extends Controller
 {
@@ -120,62 +124,111 @@ class ValidasiSuratController extends Controller
 
     public function exportWord(SuratPengantar $suratPengantar)
     {
-        // Pastikan surat sudah disetujui
+        // Pastikan surat sudah disetujui untuk diekspor
         if ($suratPengantar->status_bapendik !== 'disetujui') {
-            return redirect()->back()->with('error', 'Surat pengantar belum disetujui atau status tidak valid untuk export.');
+            return redirect()->back()->with('error', 'Surat Pengantar ini belum disetujui atau status tidak valid untuk export.');
         }
 
-        // Path ke file templates Word kamu
         $templatePath = storage_path('app/templates/template_surat_pengantar.docx');
 
         if (!file_exists($templatePath)) {
-            return redirect()->back()->with('error', 'File templates surat tidak ditemukan.');
+            return redirect()->back()->with('error', 'File template Surat Pengantar tidak ditemukan.');
         }
 
         try {
             $templateProcessor = new TemplateProcessor($templatePath);
 
-            // Siapkan data yang akan di-replace
-            $mahasiswa = $suratPengantar->mahasiswa->user;
-            $dataMahasiswa = $suratPengantar->mahasiswa;
-            $jurusan = $dataMahasiswa->jurusan;
+            // Load relasi yang dibutuhkan jika belum ter-load
+            $suratPengantar->load(['mahasiswa.user', 'mahasiswa.jurusan']);
 
-            // Contoh Nomor Surat (bisa dikembangkan lebih lanjut)
-            // Misalnya: 001/SP/FTIK/V/2025 (No Urut/JenisSurat/Fakultas/BulanRomawi/Tahun)
-            // Untuk saat ini kita buat sederhana atau kamu bisa tambahkan field nomor surat di db
-            $nomorSurat = "{$suratPengantar->id}/SP-KP/{$jurusan->kode}/" . Carbon::now()->format('m/Y');
+            // Data Mahasiswa
+            $namaMahasiswa = $suratPengantar->mahasiswa->user->name ?? 'N/A';
+            $nimMahasiswa = $suratPengantar->mahasiswa->nim ?? 'N/A';
+            $jurusanMahasiswa = $suratPengantar->mahasiswa->jurusan->nama ?? 'N/A';
+            $fakultasMahasiswa = $suratPengantar->mahasiswa->jurusan->fakultas ?? 'N/A'; // Pastikan ada di model Jurusan
+            $jenjangMahasiswa = $suratPengantar->mahasiswa->jurusan->jenjang ?? 'N/A';   // Pastikan ada
 
-            $templateProcessor->setValue('NOMOR_SURAT', $nomorSurat);
-            $templateProcessor->setValue('TANGGAL_SURAT', Carbon::now()->isoFormat('D MMMM YYYY'));
-            $templateProcessor->setValue('NAMA_MAHASISWA', $mahasiswa->name);
-            $templateProcessor->setValue('NIM_MAHASISWA', $dataMahasiswa->nim);
-            $templateProcessor->setValue('JURUSAN_MAHASISWA', $jurusan->nama);
-            $templateProcessor->setValue('FAKULTAS_MAHASISWA', $jurusan->fakultas); // Pastikan ada kolom fakultas di model Jurusan
+            // Data Pejabat Penandatangan (Contoh - sesuaikan dengan kebutuhan)
+            // Ini bisa diambil dari database, config, atau di-hardcode jika selalu sama
+            $namaPenandatangan = "Dr. Eng. Suroso, S.T., M.Eng."; // Ganti dengan nama pejabat yang benar
+            $jabatanPenandatangan = "a.n. Dekan,\nWakil Dekan Bidang Akademik"; // \n untuk baris baru di Word (jika template mendukung)
+            $nipPenandatangan = "197406022003121001"; // Ganti dengan NIP yang benar
+
+            // Nomor Surat (Contoh logika sederhana, sesuaikan dengan format institusi)
+            // Misalnya: IDSurat/SP/KodeFakultas/KodeJurusan/BulanRomawi/Tahun
+            // Kolom 'nomor_surat_resmi' bisa diisi oleh Bapendik saat approval jika diperlukan
+            $nomorSuratResmi = $suratPengantar->nomor_surat_resmi;
+            if (empty($nomorSuratResmi)) {
+                // Contoh logika generate jika nomor surat belum ada:
+                $fakultasKode = $jurusanMahasiswa->fakultas_kode_singkat ?? 'FT'; // Asumsi ada accessor/kolom fakultas_kode_singkat
+                $jurusanKode = $jurusanMahasiswa->kode ?? 'XX';
+                $bulanRomawi = $this->getRomanMonth(Carbon::parse($suratPengantar->tanggal_pengajuan)->month);
+                $tahunPengajuan = Carbon::parse($suratPengantar->tanggal_pengajuan)->year;
+                $nomorSuratResmi = sprintf('%03d', $suratPengantar->id) . "/SPENG/{$fakultasKode}/{$jurusanKode}/{$bulanRomawi}/{$tahunPengajuan}";
+            }
+
+            // Mengisi placeholder di template
+            $templateProcessor->setValue('NOMOR_SURAT', $nomorSuratResmi);
+            $templateProcessor->setValue('TEMPAT_SURAT_DIBUAT', 'Purbalingga'); // Sesuaikan jika dinamis
+            $templateProcessor->setValue('TANGGAL_SURAT_DIBUAT', Carbon::now()->isoFormat('D MMMM YYYY'));
+            $templateProcessor->setValue('LAMPIRAN', 'I Lembar'); // Atau dinamis jika perlu
+            $templateProcessor->setValue('PERIHAL', 'Permohonan Ijin Kerja Praktek'); // Atau dinamis jika perlu
 
             $templateProcessor->setValue('PENERIMA_SURAT', $suratPengantar->penerima_surat);
-            $templateProcessor->setValue('NAMA_INSTANSI', $suratPengantar->lokasi_penelitian); // Asumsi lokasi penelitian = nama instansi
-            $templateProcessor->setValue('ALAMAT_INSTANSI', $suratPengantar->alamat_surat);
-            $templateProcessor->setValue('LOKASI_KP', $suratPengantar->lokasi_penelitian);
-            $templateProcessor->setValue('PERIHAL_SURAT', 'Permohonan Kerja Praktek (KP)'); // Atau bisa dibuat dinamis
+            $templateProcessor->setValue('NAMA_INSTANSI_TUJUAN', $suratPengantar->lokasi_penelitian);
+            $templateProcessor->setValue('ALAMAT_INSTANSI_LENGKAP', $suratPengantar->alamat_surat);
 
-            // Data penandatangan (Bapendik/Pejabat Fakultas) - ini contoh, sesuaikan
-            // $userBapendik = Auth::user(); // Atau user tertentu yang berwenang
-            // $templateProcessor->setValue('NAMA_BAPENDIK', $userBapendik->name);
-            // $templateProcessor->setValue('JABATAN_BAPENDIK', 'Kepala BAAK'); // Sesuaikan
-            // $templateProcessor->setValue('NIP_BAPENDIK', $userBapendik->dosen->nidn ?? '-'); // Jika Bapendik adalah dosen
+            $templateProcessor->setValue('NAMA_MAHASISWA', $namaMahasiswa);
+            $templateProcessor->setValue('NIM_MAHASISWA', $nimMahasiswa);
+            $templateProcessor->setValue('JURUSAN_MAHASISWA', $jurusanMahasiswa);
+            $templateProcessor->setValue('FAKULTAS_MAHASISWA', $fakultasMahasiswa);
+            $templateProcessor->setValue('JENJANG_MAHASISWA', $jenjangMahasiswa);
+            $templateProcessor->setValue('TAHUN_AKADEMIK_PENGAJUAN', $suratPengantar->tahun_akademik);
+
+            // Untuk semester, jika format tahun_akademik seperti "Genap 2022/2023"
+            // Anda bisa memprosesnya atau memiliki kolom terpisah. Untuk contoh:
+            $templateProcessor->setValue('SEMESTER_TAHUN_AJARAN', $suratPengantar->tahun_akademik);
+            // Jika 'penerima_surat' adalah unit/departemen, itu bisa jadi LOKASI_DETAIL_KP_DI_INSTANSI
+            // Jika lokasi_penelitian sudah detail, gunakan itu. Sesuaikan.
+            $templateProcessor->setValue('LOKASI_DETAIL_KP_DI_INSTANSI', $suratPengantar->lokasi_penelitian);
+
+
+            // Data Penandatangan
+            // $templateProcessor->setValue('ATAS_NAMA_JABATAN_1', "a.n. Dekan,"); // Jika ada placeholder ini
+            $templateProcessor->setValue('JABATAN_PENANDATANGAN', $jabatanPenandatangan);
+            $templateProcessor->setValue('NAMA_PENANDATANGAN', $namaPenandatangan);
+            $templateProcessor->setValue('NIP_PENANDATANGAN', $nipPenandatangan);
+
+            // Tembusan
+            $templateProcessor->setValue('TEMBUSAN_1', "Ketua Jurusan " . $jurusanMahasiswa);
+            // Jika kolom 'tembusan_surat' di database berisi teks lengkap untuk tembusan lainnya:
+            // $templateProcessor->setValue('TEMBUSAN_LAINNYA', $suratPengantar->tembusan_surat ?? 'Pertinggal');
+            // Jika tidak, bisa di-hardcode 'Pertinggal' atau dikosongkan
+            $templateProcessor->setValue('TEMBUSAN_LAINNYA', 'Pertinggal');
+
 
             // Nama file yang akan diunduh
-            $fileName = 'Surat_Pengantar_KP_' . str_replace('/', '_', $dataMahasiswa->nim) . '_' . $mahasiswa->name . '.docx';
+            $safeMahasiswaName = Str::slug($namaMahasiswa, '_');
+            $fileName = 'Surat_Pengantar_KP_' . $nimMahasiswa . '_' . $safeMahasiswaName . '.docx';
 
-            // Simpan ke file sementara lalu kirim sebagai unduhan
-            $tempFile = tempnam(sys_get_temp_dir(), 'PHPWord');
+            $tempFile = tempnam(sys_get_temp_dir(), 'PHPWord_SPengantar_');
             $templateProcessor->saveAs($tempFile);
 
             return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
 
         } catch (\PhpOffice\PhpWord\Exception\Exception $e) {
-            // Tangani error jika templates korup atau placeholder tidak ditemukan
-            return redirect()->back()->with('error', 'Gagal membuat dokumen: ' . $e->getMessage());
+            // Log error: Log::error('PHPWord Exception: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal membuat dokumen Surat Pengantar: Terjadi kesalahan pada template atau data. Detail: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            // Log error umum: Log::error('General Exception: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal membuat dokumen Surat Pengantar: Terjadi kesalahan umum.');
         }
+    }
+
+    // Helper function untuk bulan Romawi (jika diperlukan untuk nomor surat)
+    private function getRomanMonth(int $monthNumber): string
+    {
+        $romanMonths = [1=>'I',2=>'II',3=>'III',4=>'IV',5=>'V',6=>'VI',7=>'VII',8=>'VIII',9=>'IX',10=>'X',11=>'XI',12=>'XII'];
+        return $romanMonths[$monthNumber] ?? '';
     }
 }

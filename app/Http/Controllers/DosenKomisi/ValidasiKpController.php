@@ -113,7 +113,7 @@ class ValidasiKpController extends Controller
                 }),
             ],
             'tanggal_mulai_kp' => ['nullable', 'date', 'required_if:status_komisi,diterima'],
-            'tanggal_selesai_kp' => ['nullable', 'date', 'after_or_equal:tanggal_mulai_kp', 'required_if:status_komisi,diterima'],
+            'tanggal_selesai_kp' => ['nullable', 'date', 'after_or_equal:tanggal_mulai_kp'],
         ]);
 
         $pengajuanKp->status_komisi = $request->status_komisi;
@@ -123,8 +123,8 @@ class ValidasiKpController extends Controller
         if ($request->status_komisi == 'diterima') {
             $pengajuanKp->tanggal_diterima_komisi = now(); // Set tanggal diterima komisi
             $pengajuanKp->status_kp = 'dalam_proses'; // Ubah status KP mahasiswa
-            $pengajuanKp->tanggal_mulai_kp = $request->tanggal_mulai_kp;
-            $pengajuanKp->tanggal_selesai_kp = $request->tanggal_selesai_kp;
+            $pengajuanKp->tanggal_mulai_kp = $request->tanggal_mulai_kp ? $request->tanggal_mulai_kp : null;
+            $pengajuanKp->tanggal_selesai_kp = $request->tanggal_selesai_kp ? $request->tanggal_selesai_kp : null;
         } else if ($request->status_komisi == 'ditolak') {
             $pengajuanKp->tanggal_diterima_komisi = null; // Hapus tanggal jika ditolak
             $pengajuanKp->status_kp = 'tidak_lulus'; // Atau status lain yang sesuai

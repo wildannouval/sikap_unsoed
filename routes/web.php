@@ -90,6 +90,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/penjadwalan-seminar/{seminar}/export-berita-acara', [\App\Http\Controllers\Bapendik\PenjadwalanSeminarController::class, 'exportBeritaAcaraWord'])
             ->name('penjadwalan-seminar.exportBeritaAcaraWord');
 
+        // CRUD Ruangan Seminar
+        Route::resource('ruangan', \App\Http\Controllers\Bapendik\RuanganController::class);
+
     });
 
     Route::prefix('mahasiswa')->middleware(['auth','role:mahasiswa'])->name('mahasiswa.')->group(function () {

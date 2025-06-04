@@ -83,7 +83,21 @@
                         </div>
                         <div>
                             <label for="ruangan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Ruangan Seminar <span class="text-red-500">*</span></label>
-                            <input type="text" name="ruangan" id="ruangan" placeholder="Contoh: Ruang Seminar Gedung X" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600" value="{{ old('ruangan', $seminar->ruangan) }}" required>
+                            <select name="ruangan" id="ruangan" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600" required>
+                                <option value="">-- Pilih Ruangan Final --</option>
+                                @foreach ($daftarRuangan as $itemRuangan)
+                                    <option value="{{ $itemRuangan->nama_ruangan }}"
+                                        {{ (old('ruangan', $seminar->ruangan) == $itemRuangan->nama_ruangan) ? 'selected' : '' }}
+                                        {{ !$itemRuangan->is_tersedia ? 'disabled class=text-gray-400' : '' }}>
+                                        {{ $itemRuangan->nama_ruangan }}
+                                        {{ $itemRuangan->lokasi_gedung ? '('.$itemRuangan->lokasi_gedung.')' : '' }}
+                                        {{ !$itemRuangan->is_tersedia ? '[Tidak Tersedia Umum]' : '' }}
+                                    </option>
+                                @endforeach
+                                {{-- Opsi untuk input manual jika diperlukan --}}
+                                {{-- <option value="INPUT_MANUAL_RUANGAN">Lainnya (Isi Manual)</option> --}}
+                            </select>
+                            {{-- Jika ada opsi "Lainnya", tambahkan input teks yang muncul jika 'Lainnya' dipilih --}}
                             @error('ruangan') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                         </div>
                         <div>

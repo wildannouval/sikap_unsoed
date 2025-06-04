@@ -46,7 +46,17 @@
                         </div>
                         <div>
                             <label for="usulan_ruangan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Usulan Ruangan <span class="text-red-500">*</span></label>
-                            <input type="text" name="usulan_ruangan" id="usulan_ruangan" placeholder="Contoh: Ruang Seminar A" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600" value="{{ old('usulan_ruangan') }}" required>
+                            <select name="usulan_ruangan" id="usulan_ruangan" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600" required>
+                                <option value="">-- Pilih Ruangan --</option>
+                                @foreach ($daftarRuangan as $ruangan)
+                                    <option value="{{ $ruangan->nama_ruangan }}" {{ old('usulan_ruangan') == $ruangan->nama_ruangan ? 'selected' : '' }}>
+                                        {{ $ruangan->nama_ruangan }} {{ $ruangan->lokasi_gedung ? '('.$ruangan->lokasi_gedung.')' : '' }} {{ $ruangan->kapasitas ? '[Kapasitas: '.$ruangan->kapasitas.']' : ''}}
+                                    </option>
+                                @endforeach
+                                {{-- Kamu bisa tambahkan opsi "Lainnya" jika masih ingin mahasiswa input manual --}}
+                                {{-- <option value="Lainnya_Input_Manual">Lainnya (Isi Manual)</option> --}}
+                            </select>
+                            {{-- Jika ada opsi "Lainnya", tambahkan input teks yang muncul jika 'Lainnya' dipilih (perlu JS) --}}
                             @error('usulan_ruangan') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                         </div>
                         <div>
