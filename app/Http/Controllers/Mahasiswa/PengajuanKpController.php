@@ -109,6 +109,6 @@ class PengajuanKpController extends Controller
         ]);
 
         return redirect()->route('mahasiswa.pengajuan-kp.index')
-            ->with('success', 'Pengajuan KP berhasil dikirim.');
+            ->with('success_modal_message', 'Pengajuan KP berhasil dikirim.');
     }
 }

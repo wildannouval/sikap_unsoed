@@ -59,6 +59,6 @@ class SuratPengantarController extends Controller
         ]);
 
         return redirect()->route('mahasiswa.surat-pengantar.index')
-            ->with('success', 'Pengajuan surat pengantar berhasil dikirim.');
+            ->with('success_modal_message', 'Pengajuan surat pengantar berhasil dikirim.');
     }
 }

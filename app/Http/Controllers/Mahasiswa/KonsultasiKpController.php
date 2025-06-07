@@ -79,6 +79,6 @@ class KonsultasiKpController extends Controller
         ]);
 
         return redirect()->route('mahasiswa.pengajuan-kp.konsultasi.index', $pengajuanKp)
-            ->with('success', 'Catatan konsultasi berhasil ditambahkan.');
+            ->with('success_modal_message', 'Catatan konsultasi berhasil ditambahkan.');
     }
 }

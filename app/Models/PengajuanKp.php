@@ -18,6 +18,8 @@ class PengajuanKp extends Model
         'tanggal_selesai' => 'date',
         'tanggal_diterima_komisi' => 'date',
         'nilai_akhir_angka' => 'decimal:2',
+        'spk_dicetak_at' => 'datetime',
+        'spk_diambil_at' => 'datetime',
     ];
 
     public function mahasiswa()

@@ -6,32 +6,37 @@ use App\Http\Controllers\Controller;
 use App\Models\Seminar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class SeminarApprovalController extends Controller
 {
-        /**
-         * Menampilkan daftar pengajuan seminar yang perlu diproses oleh dosen pembimbing.
-         */
-        public function index(Request $request)
+    /**
+     * Menampilkan daftar pengajuan seminar yang perlu diproses atau sudah diproses.
+     */
+    public function index(Request $request)
     {
         $dosenId = Auth::user()->dosen->id;
 
         $query = Seminar::whereHas('pengajuanKp', function ($q) use ($dosenId) {
             $q->where('dosen_pembimbing_id', $dosenId);
-        })
-            ->with(['mahasiswa.user', 'pengajuanKp'])
-            ->latest('tanggal_pengajuan_seminar'); // Atau latest('updated_at') jika ingin yang baru diproses muncul di atas
+        })->with(['mahasiswa.user', 'pengajuanKp']);
 
-        // Filter berdasarkan status_pengajuan dari request
-        if ($request->filled('status_pengajuan_filter')) {
-            $query->where('status_pengajuan', $request->status_pengajuan_filter);
+
+        // Cek apakah parameter filter ada di URL. Helper request() lebih fleksibel di sini.
+        // Cek apakah parameter filter ada di URL, bahkan jika nilainya kosong.
+        if ($request->has('status_pengajuan_filter')) {
+            // Hanya terapkan filter 'where' jika nilainya TIDAK KOSONG.
+            // Jika nilainya kosong (saat user memilih "Semua Status"), jangan tambahkan klausa 'where' status.
+            if ($request->filled('status_pengajuan_filter')) {
+                $query->where('status_pengajuan', $request->status_pengajuan_filter);
+            }
+        } else {
+            // Perilaku default saat halaman pertama kali dibuka (tidak ada parameter filter).
+            // Tampilkan yang paling butuh tindakan.
+            $query->where('status_pengajuan', 'diajukan_mahasiswa');
         }
-        // Default filter jika tidak ada input, bisa tampilkan semua atau yang masih relevan bagi dospem
-        // Misalnya, jika tidak ada filter, tampilkan yang 'diajukan_mahasiswa' dan 'disetujui_dospem'
-        // atau biarkan saja menampilkan semua jika itu yang diinginkan.
-        // Untuk contoh ini, kita biarkan menampilkan semua jika tidak ada filter status.
 
-        // Search (Tetap sama)
+        // Filter berdasarkan pencarian
         if ($request->filled('search')) {
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
@@ -45,125 +50,75 @@ class SeminarApprovalController extends Controller
             });
         }
 
-        $seminarApplications = $query->paginate(10)->appends($request->query());
+        $seminarApplications = $query->latest('tanggal_pengajuan_seminar')->paginate(10)->appends($request->query());
 
-        // Daftar status untuk dropdown filter
+        // Daftar status baru untuk dropdown filter
         $statuses = [
-            'diajukan_mahasiswa' => 'Diajukan Mahasiswa',
-            'disetujui_dospem' => 'Disetujui oleh Anda',
-            'ditolak_dospem' => 'Ditolak oleh Anda',
-            'dijadwalkan_komisi' => 'Dijadwalkan Komisi',
-            'selesai_dinilai' => 'Selesai Dinilai',
+            'diajukan_mahasiswa' => 'Menunggu Persetujuan Dospem',
+            'disetujui_dospem' => 'Telah Disetujui Dospem',
+            'ditolak_dospem' => 'Telah Ditolak Dospem',
+            'dijadwalkan_bapendik' => 'Sudah Dijadwalkan Bapendik',
+            'selesai_dinilai' => 'Sudah Selesai Dinilai',
             'dibatalkan' => 'Dibatalkan',
-            'revisi_jadwal_komisi' => 'Revisi Jadwal (dari Komisi)',
         ];
 
         return view('dosen-pembimbing.seminar_approval.index', compact('seminarApplications', 'request', 'statuses'));
     }
 
-        /**
-         * Menampilkan form untuk Dosen Pembimbing memproses (setuju/tolak) pengajuan seminar.
-         */
-    public function showForm(Seminar $seminar) // Route model binding
+    /**
+     * Menampilkan form untuk Dosen Pembimbing memproses pengajuan seminar.
+     */
+    public function showForm(Seminar $seminar)
     {
         $dosenId = Auth::user()->dosen->id;
-        // Autorisasi: Pastikan dosen yang login adalah pembimbing dari KP terkait seminar ini
+        // Otorisasi
         if ($seminar->pengajuanKp->dosen_pembimbing_id !== $dosenId) {
-            abort(403, 'Akses ditolak. Anda bukan pembimbing untuk KP terkait seminar ini.');
+            abort(403, 'Akses ditolak.');
         }
-
-        // HAPUS ATAU KOMENTARI BLOK IF INI:
-        /*
-        if ($seminar->status_pengajuan !== 'diajukan_mahasiswa') {
-            return redirect()->route('dosen-pembimbing.seminar-approval.index')
-                             ->with('info', 'Pengajuan seminar ini sudah diproses atau statusnya tidak valid.');
-        }
-        */
-        // View akan menangani tampilan berdasarkan status.
 
         $seminar->load(['mahasiswa.user', 'pengajuanKp']);
         return view('dosen-pembimbing.seminar_approval.form', compact('seminar'));
     }
 
-        /**
-         * Memproses persetujuan atau penolakan seminar oleh Dosen Pembimbing.
-         */
-        public function processApproval(Request $request, Seminar $seminar)
+    /**
+     * Memproses persetujuan atau penolakan seminar.
+     */
+    public function processApproval(Request $request, Seminar $seminar)
     {
         $dosenId = Auth::user()->dosen->id;
         if ($seminar->pengajuanKp->dosen_pembimbing_id !== $dosenId) {
             abort(403, 'Akses ditolak.');
         }
+        // Hanya bisa memproses jika statusnya 'diajukan_mahasiswa'
         if ($seminar->status_pengajuan !== 'diajukan_mahasiswa') {
             return redirect()->route('dosen-pembimbing.seminar-approval.index')
                 ->with('error', 'Pengajuan seminar ini sudah diproses sebelumnya.');
         }
 
+        // Kita akan menggunakan 'tindakan_dospem' sebagai nama input di form
         $request->validate([
-            'tindakan_dospem' => 'required|in:setuju,tolak',
-            'catatan_dospem' => 'nullable|string|max:1000|required_if:tindakan_dospem,tolak',
+            'tindakan_dospem' => ['required', Rule::in(['setuju', 'tolak', 'revisi'])],
+            'catatan_dospem' => ['nullable', 'string', 'max:2000', 'required_if:tindakan_dospem,tolak', 'required_if:tindakan_dospem,revisi'],
         ]);
 
+        $statusMap = [
+            'setuju' => 'disetujui_dospem',
+            'tolak' => 'ditolak_dospem',
+            'revisi' => 'revisi_dospem',
+        ];
+
+        $seminar->status_pengajuan = $statusMap[$request->tindakan_dospem];
+        $seminar->catatan_dospem = $request->catatan_dospem;
+
         if ($request->tindakan_dospem === 'setuju') {
-            $seminar->status_pengajuan = 'disetujui_dospem';
             $seminar->dospem_approved_at = now();
-            $seminar->catatan_dospem = $request->catatan_dospem; // Catatan opsional jika setuju
-        } elseif ($request->tindakan_dospem === 'tolak') {
-            $seminar->status_pengajuan = 'ditolak_dospem';
-            $seminar->catatan_dospem = $request->catatan_dospem; // Catatan wajib jika ditolak
-            $seminar->dospem_approved_at = null; // Reset jika sebelumnya pernah disetujui lalu diubah
+        } else {
+            $seminar->dospem_approved_at = null; // Reset jika ditolak/revisi
         }
+
         $seminar->save();
 
         return redirect()->route('dosen-pembimbing.seminar-approval.index')
-            ->with('success', 'Pengajuan seminar mahasiswa telah berhasil diproses.');
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Seminar $seminar)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Seminar $seminar)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Seminar $seminar)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Seminar $seminar)
-    {
-        //
+            ->with('success_modal_message', 'Pengajuan seminar mahasiswa telah berhasil diproses.');
     }
 }

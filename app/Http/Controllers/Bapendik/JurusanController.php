@@ -5,15 +5,29 @@ namespace App\Http\Controllers\Bapendik;
 use App\Http\Controllers\Controller;
 use App\Models\Jurusan;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class JurusanController extends Controller
 {
 
     // Menampilkan daftar semua jurusan
-    public function index()
+    public function index(Request $request)
     {
-        $jurusans = Jurusan::latest()->paginate(10);
-        return view('bapendik.jurusan.index', compact('jurusans'));
+        $query = Jurusan::orderBy('fakultas')->orderBy('nama'); // Urutkan berdasarkan fakultas lalu nama
+
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('kode', 'like', "%{$searchTerm}%")
+                    ->orWhere('nama', 'like', "%{$searchTerm}%")
+                    ->orWhere('fakultas', 'like', "%{$searchTerm}%")
+                    ->orWhere('jenjang', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        $jurusans = $query->paginate(10)->appends($request->query()); // appends query untuk pagination
+
+        return view('bapendik.jurusan.index', compact('jurusans', 'request')); // kirim 'request' ke view
     }
 
     // Menampilkan form untuk membuat jurusan baru
@@ -25,20 +39,18 @@ class JurusanController extends Controller
     // Menyimpan jurusan baru ke database
     public function store(Request $request)
     {
-        // Validasi Input
         $request->validate([
-            'kode' => 'required|string|unique:jurusans,kode|max:10',
+            'kode' => 'required|string|max:10|unique:jurusans,kode',
             'nama' => 'required|string|max:255',
             'fakultas' => 'required|string|max:255',
             'jenjang' => 'required|string|max:10',
+            'akreditasi' => 'nullable|string|max:5',
         ]);
 
-        //Simpan data
         Jurusan::create($request->all());
 
-        //Redirect ke halaman index dengan pesan sukses
         return redirect()->route('bapendik.jurusan.index')
-            ->with('success', 'Jurusan berhasil ditambahkan!');
+            ->with('success_modal_message', 'Jurusan berhasil ditambahkan.'); // Menggunakan key untuk modal
     }
 
     /**
@@ -58,29 +70,35 @@ class JurusanController extends Controller
     // Memperbarui data jurusan di database
     public function update(Request $request, Jurusan $jurusan)
     {
-        // Validasi input
         $request->validate([
-            'kode' => 'required|string|unique:jurusans,kode,'.$jurusan->id,
+            'kode' => ['required','string','max:10', Rule::unique('jurusans')->ignore($jurusan->id)],
             'nama' => 'required|string|max:255',
             'fakultas' => 'required|string|max:255',
             'jenjang' => 'required|string|max:10',
+            'akreditasi' => 'nullable|string|max:5',
         ]);
 
-        // update data
         $jurusan->update($request->all());
 
-        // Redirect ke halaman index dengan pesan sukses
         return redirect()->route('bapendik.jurusan.index')
-            ->with('success', 'Jurusan berhasil diperbarui!');
+            ->with('success_modal_message', 'Data jurusan berhasil diperbarui.'); // Menggunakan key untuk modal
     }
 
     //Menghapus data jurusan dari database
     public function destroy(Jurusan $jurusan)
     {
-        $jurusan->delete();
-
-        // Redirect ke halaman index dengan pesan sukses
-        return redirect()->route('bapendik.jurusan.index')
-            ->with('success', 'Jurusan berhasil dihapus!');
+        try {
+            // Tambahkan pengecekan apakah jurusan ini dipakai oleh mahasiswa atau dosen
+            if ($jurusan->mahasiswas()->exists() || $jurusan->dosens()->exists()) {
+                return redirect()->route('bapendik.jurusan.index')
+                    ->with('error', 'Jurusan "'.$jurusan->nama.'" tidak bisa dihapus karena masih digunakan oleh data mahasiswa atau dosen.');
+            }
+            $jurusan->delete();
+            return redirect()->route('bapendik.jurusan.index')
+                ->with('success_modal_message', 'Jurusan berhasil dihapus.'); // Menggunakan key untuk modal
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->route('bapendik.jurusan.index')
+                ->with('error', 'Jurusan tidak bisa dihapus karena masih terikat dengan data lain. Error Code: '.$e->getCode());
+        }
     }
 }

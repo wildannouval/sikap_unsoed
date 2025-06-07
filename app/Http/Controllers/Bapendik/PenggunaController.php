@@ -133,8 +133,8 @@ class PenggunaController extends Controller
             }
         });
 
-        return redirect()->route('bapendik.pengguna.index')
-            ->with('success', 'Pengguna baru berhasil ditambahkan.');
+        return redirect()->route('bapendik.pengguna.index',['active_tab' => $request->role])
+            ->with('success_modal_message', 'Pengguna baru berhasil ditambahkan!');
     }
 
     /**
@@ -202,8 +202,8 @@ class PenggunaController extends Controller
             }
         });
 
-        return redirect()->route('bapendik.pengguna.index')
-            ->with('success', 'Data pengguna berhasil diperbarui.');
+        return redirect()->route('bapendik.pengguna.index',['active_tab' => $pengguna->role])
+            ->with('success_modal_message', 'Data pengguna berhasil diperbarui!');
     }
 
     /**
@@ -211,11 +211,14 @@ class PenggunaController extends Controller
      */
     public function destroy(User $pengguna)
     {
-        // Karena kita sudah set 'cascadeOnDelete' di migrasi,
-        // data di tabel mahasiswas/dosens akan otomatis terhapus.
-        $pengguna->delete();
-
-        return redirect()->route('bapendik.pengguna.index')
-            ->with('success', 'Pengguna berhasil dihapus.');
+        $roleTab = $pengguna->role; // Simpan role sebelum dihapus
+        try {
+            $pengguna->delete(); // Relasi cascadeOnDelete akan menghapus profil mahasiswa/dosen
+            return redirect()->route('bapendik.pengguna.index', ['active_tab' => $roleTab])
+                ->with('success_modal_message', 'Pengguna berhasil dihapus.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->route('bapendik.pengguna.index', ['active_tab' => $roleTab])
+                ->with('error', 'Pengguna tidak bisa dihapus, kemungkinan masih terkait dengan data lain. Detail: ' . $e->getMessage());
+        }
     }
 }

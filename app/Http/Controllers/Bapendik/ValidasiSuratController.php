@@ -111,7 +111,7 @@ class ValidasiSuratController extends Controller
         $suratPengantar->save();
 
         return redirect()->route('bapendik.validasi-surat.index')
-            ->with('success', 'Status pengajuan surat berhasil diperbarui.');
+            ->with('success_modal_message', 'Status pengajuan surat berhasil diperbarui.');
     }
 
     /**

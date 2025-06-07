@@ -1,32 +1,47 @@
 <?php
 
-namespace App\Http\Controllers\Bapendik; // Pastikan namespace-nya Bapendik
+namespace App\Http\Controllers\Bapendik;
 
 use App\Http\Controllers\Controller;
-use App\Models\Ruangan;
+use App\Http\Controllers\Traits\DocumentHelpers; // Trait untuk fungsi bantuan
 use App\Models\Seminar;
 use App\Models\Jurusan;
-use Carbon\Carbon;
+use App\Models\Ruangan;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use PhpOffice\PhpWord\TemplateProcessor;
-
-// Auth mungkin tidak terlalu relevan di sini karena akses sudah diproteksi role Bapendik
-// tapi bisa digunakan jika ada logika terkait user Bapendik yang melakukan aksi.
+use Illuminate\Support\Facades\Log;
 
 class PenjadwalanSeminarController extends Controller
 {
+    use DocumentHelpers; // Gunakan Trait jika ada fungsi helper seperti getRomanMonth
+
+    /**
+     * Menampilkan daftar pengajuan seminar yang perlu dijadwalkan atau sudah dijadwalkan.
+     */
     public function index(Request $request)
     {
-        // Bapendik melihat semua seminar yang sudah disetujui dospem
-        // atau yang sudah dijadwalkan oleh Bapendik sendiri untuk pengelolaan
-        $query = Seminar::whereIn('status_pengajuan', ['disetujui_dospem', 'dijadwalkan_komisi', 'revisi_jadwal_komisi'])
+        // Bapendik melihat seminar yang sudah disetujui dospem atau sudah dijadwalkan
+        $query = Seminar::whereIn('status_pengajuan', [
+            'disetujui_dospem',
+            'dijadwalkan_bapendik',
+            'revisi_jadwal_bapendik',
+            'dibatalkan' // Tambahkan status ini
+        ])
             ->with(['mahasiswa.user', 'mahasiswa.jurusan', 'pengajuanKp.dosenPembimbing.user'])
-            ->latest('updated_at'); // Atau 'dospem_approved_at'
+            ->latest('updated_at');
 
-        // Filter berdasarkan status_pengajuan
-        if ($request->filled('status_filter')) {
-            $query->where('status_pengajuan', $request->status_filter);
+        // Cek apakah parameter filter status ada di URL
+        if ($request->has('status_filter')) {
+            if ($request->filled('status_filter')) {
+                $query->where('status_pengajuan', $request->status_filter);
+            }
+            // Jika kosong (memilih "Semua"), maka query whereIn di atas akan berlaku
+        } else {
+            // Default saat pertama kali buka halaman
+            $query->where('status_pengajuan', 'disetujui_dospem');
         }
 
         // Filter berdasarkan jurusan mahasiswa
@@ -36,7 +51,7 @@ class PenjadwalanSeminarController extends Controller
             });
         }
 
-        // Search (nama mahasiswa, nim, judul kp)
+        // Filter pencarian
         if ($request->filled('search')) {
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
@@ -53,84 +68,95 @@ class PenjadwalanSeminarController extends Controller
         $seminarApplications = $query->paginate(10)->appends($request->query());
         $jurusans = Jurusan::orderBy('nama')->get();
 
-        $statuses = [ // Status yang relevan untuk Bapendik kelola/lihat di halaman ini
-            'disetujui_dospem' => 'Disetujui Dospem (Siap Dijadwalkan)',
-            'dijadwalkan_komisi' => 'Sudah Dijadwalkan',
-            'revisi_jadwal_komisi' => 'Revisi Jadwal (dari Anda)',
-            // Bisa ditambahkan status lain jika Bapendik perlu melihatnya di sini
+        $statuses = [
+            'disetujui_dospem' => 'Menunggu Dijadwalkan Bapendik',
+            'dijadwalkan_bapendik' => 'Sudah Dijadwalkan Bapendik',
+            'revisi_jadwal_bapendik' => 'Revisi Jadwal Diminta',
+            'dibatalkan' => 'Dibatalkan', // Tambahkan status ini
         ];
 
         return view('bapendik.penjadwalan_seminar.index', compact('seminarApplications', 'jurusans', 'request', 'statuses'));
     }
 
+    /**
+     * Menampilkan form untuk menetapkan atau mengubah jadwal seminar.
+     */
     public function editJadwal(Seminar $seminar)
     {
         // Bapendik bisa mengedit jadwal untuk seminar yang statusnya disetujui dospem atau sudah dijadwalkan (jika ada perubahan)
-        if (!in_array($seminar->status_pengajuan, ['disetujui_dospem', 'dijadwalkan_komisi', 'revisi_jadwal_komisi'])) {
+        if (!in_array($seminar->status_pengajuan, ['disetujui_dospem', 'dijadwalkan_bapendik', 'revisi_jadwal_bapendik'])) {
             return redirect()->route('bapendik.penjadwalan-seminar.index')
-                ->with('error', 'Pengajuan seminar ini tidak dalam status yang bisa dijadwalkan/diedit jadwalnya.');
+                ->with('error', 'Pengajuan seminar ini tidak dalam status yang bisa dijadwalkan atau diedit jadwalnya.');
         }
 
         $seminar->load(['mahasiswa.user', 'mahasiswa.jurusan', 'pengajuanKp.dosenPembimbing.user']);
-        $daftarRuangan = Ruangan::orderBy('nama_ruangan')->get(); // Tampilkan semua, Bapendik yang putuskan
-        // $daftarRuangan = Ruangan::all(); // Jika ada master data ruangan
-        // $daftarPenguji = User::where('role', 'dosen')->whereHas('dosen')->get(); // Untuk memilih penguji
+        // Ambil semua data ruangan untuk dropdown, Bapendik bisa memilih bahkan yang ditandai tidak tersedia jika ada kondisi khusus
+        $daftarRuangan = Ruangan::orderBy('nama_ruangan')->get();
 
-        return view('bapendik.penjadwalan_seminar.edit', compact('seminar', 'daftarRuangan',/* 'daftarPenguji'*/));
+        return view('bapendik.penjadwalan_seminar.edit', compact('seminar', 'daftarRuangan'));
     }
 
+    /**
+     * Menyimpan jadwal seminar yang final.
+     */
     public function updateJadwal(Request $request, Seminar $seminar)
     {
-        if (!in_array($seminar->status_pengajuan, ['disetujui_dospem', 'dijadwalkan_komisi', 'revisi_jadwal_komisi'])) {
+        if (!in_array($seminar->status_pengajuan, ['disetujui_dospem', 'dijadwalkan_bapendik', 'revisi_jadwal_bapendik'])) {
             return redirect()->route('bapendik.penjadwalan-seminar.index')
                 ->with('error', 'Gagal memperbarui jadwal, status pengajuan seminar tidak valid.');
         }
 
         $request->validate([
-            'tanggal_seminar' => 'required|date', // Bisa jadi tanggal lampau jika hanya mencatat jadwal yg sudah fix sebelumnya
+            'tindakan_bapendik' => ['required', Rule::in(['tetapkan_jadwal', 'minta_revisi'])],
+            'tanggal_seminar' => 'required|date',
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
-            'ruangan' => 'required|string|max:100',
-            'catatan_komisi' => 'nullable|string|max:1000', // Catatan dari Bapendik/Komisi
+            'ruangan' => 'required|string|max:255|exists:ruangans,nama_ruangan', // Validasi bahwa ruangan ada di tabel
+            'catatan_komisi' => 'nullable|string|max:1000',
         ]);
 
-        $seminar->tanggal_seminar = $request->tanggal_seminar;
-        $seminar->jam_mulai = $request->jam_mulai;
-        $seminar->jam_selesai = $request->jam_selesai;
-        $seminar->ruangan = $request->ruangan;
-        $seminar->catatan_komisi = $request->catatan_komisi;
-        $seminar->status_pengajuan = 'dijadwalkan_komisi'; // Ubah status menjadi telah dijadwalkan
-
-        // Jika ada field dosen penguji, simpan di sini
-        // $seminar->dosen_penguji_1_id = $request->dosen_penguji_1_id;
-        // $seminar->dosen_penguji_2_id = $request->dosen_penguji_2_id;
+        if ($request->tindakan_bapendik === 'tetapkan_jadwal') {
+            $seminar->tanggal_seminar = $request->tanggal_seminar;
+            $seminar->jam_mulai = $request->jam_mulai;
+            $seminar->jam_selesai = $request->jam_selesai;
+            $seminar->ruangan = $request->ruangan;
+            $seminar->status_pengajuan = 'dijadwalkan_bapendik'; // Status baru
+            $seminar->catatan_komisi = $request->catatan_komisi; // Catatan bisa opsional di sini
+            $message = 'Jadwal seminar berhasil ditetapkan.';
+        } elseif ($request->tindakan_bapendik === 'minta_revisi') {
+            $seminar->status_pengajuan = 'revisi_jadwal_bapendik'; // Status baru
+            $seminar->catatan_komisi = $request->catatan_komisi; // Wajib diisi
+            $message = 'Permintaan revisi jadwal telah dikirim ke mahasiswa.';
+        }
 
         $seminar->save();
 
-        // Notifikasi ke mahasiswa dan dosen pembimbing
-        // (Implementasi notifikasi bisa via Email atau Notifikasi internal sistem)
+        // Di sini bisa ditambahkan logika untuk mengirim notifikasi ke mahasiswa dan dosen pembimbing
 
         return redirect()->route('bapendik.penjadwalan-seminar.index')
-            ->with('success', 'Jadwal seminar untuk ' . $seminar->mahasiswa->user->name . ' berhasil ditetapkan/diperbarui.');
+            ->with('success_modal_message', $message);
     }
+
+    /**
+     * Generate dan download Blangko Berita Acara Seminar dalam format Word.
+     */
     public function exportBeritaAcaraWord(Seminar $seminar)
     {
-        // Pastikan seminar sudah dijadwalkan oleh Komisi/Bapendik
-        if ($seminar->status_pengajuan !== 'dijadwalkan_komisi' && $seminar->status_pengajuan !== 'selesai_dinilai') {
+        if (!in_array($seminar->status_pengajuan, ['dijadwalkan_bapendik', 'selesai_dinilai'])) {
             return redirect()->back()->with('error', 'Dokumen Berita Acara hanya bisa diekspor untuk seminar yang sudah dijadwalkan atau selesai dinilai.');
         }
 
-        $templatePath = storage_path('app/templates/template_berita_acara_seminar.docx'); // Pastikan nama file template benar
+        $templatePath = storage_path('app/templates/template_berita_acara_seminar.docx');
 
         if (!file_exists($templatePath)) {
+            Log::error('Template Berita Acara Seminar tidak ditemukan di: ' . $templatePath);
             return redirect()->back()->with('error', 'File template Blangko Berita Acara Seminar tidak ditemukan.');
         }
 
         try {
             $templateProcessor = new TemplateProcessor($templatePath);
 
-            // Load relasi yang dibutuhkan
-            $seminar->load(['mahasiswa.user', 'mahasiswa.jurusan', 'pengajuanKp.dosenPembimbing.user', 'pengajuanKp.dosenPembimbing.jurusan']);
+            $seminar->load(['mahasiswa.user', 'mahasiswa.jurusan', 'pengajuanKp.dosenPembimbing.user', 'pengajuanKp.dosenPembimbing']);
 
             // Siapkan data
             $mahasiswaUser = $seminar->mahasiswa->user;
@@ -139,64 +165,67 @@ class PenjadwalanSeminarController extends Controller
             $dosenPembimbingUser = $seminar->pengajuanKp->dosenPembimbing->user;
             $dataDosenPembimbing = $seminar->pengajuanKp->dosenPembimbing;
 
-            // Data Penandatangan Berita Acara (misalnya Ketua Jurusan atau Koordinator KP)
-            // Sesuaikan dengan kebutuhan di institusimu
-            $namaPenandatanganBA = "Dr. Nama Ketua Jurusan, S.Kom., M.Kom."; // Contoh
-            $nipPenandatanganBA = "197XXXXXXX200XXXXX"; // Contoh
+            // Data Penandatangan (SESUAIKAN)
+            $namaKajur = "Nama Ketua Jurusan";
+            $nipKajur = "NIP/NIDN Ketua Jurusan";
 
-            // Nomor Berita Acara (jika ada format khusus, atau bisa dikosongkan untuk diisi manual)
+            // Nomor Berita Acara (SESUAIKAN)
             $nomorBeritaAcara = "BA/{$seminar->id}/{$jurusanMahasiswa->kode}/SEM/" . Carbon::parse($seminar->tanggal_seminar)->format('m/Y');
 
             // Mengisi placeholder
-            // Data Surat
             $templateProcessor->setValue('NOMOR_BERITA_ACARA', $nomorBeritaAcara);
             $templateProcessor->setValue('HARI_SEMINAR', $seminar->tanggal_seminar ? Carbon::parse($seminar->tanggal_seminar)->isoFormat('dddd') : 'N/A');
             $templateProcessor->setValue('TANGGAL_SEMINAR_LENGKAP', $seminar->tanggal_seminar ? Carbon::parse($seminar->tanggal_seminar)->isoFormat('D MMMM YYYY') : 'N/A');
             $templateProcessor->setValue('JAM_MULAI_SEMINAR', $seminar->jam_mulai ? Carbon::parse($seminar->jam_mulai)->format('H:i') : 'N/A');
             $templateProcessor->setValue('JAM_SELESAI_SEMINAR', $seminar->jam_selesai ? Carbon::parse($seminar->jam_selesai)->format('H:i') : 'N/A');
             $templateProcessor->setValue('RUANGAN_SEMINAR', $seminar->ruangan ?? 'N/A');
-
-            // Data Mahasiswa
             $templateProcessor->setValue('NAMA_MAHASISWA', $mahasiswaUser->name ?? 'N/A');
             $templateProcessor->setValue('NIM_MAHASISWA', $dataMahasiswa->nim ?? 'N/A');
             $templateProcessor->setValue('JURUSAN_MAHASISWA', $jurusanMahasiswa->nama ?? 'N/A');
             $templateProcessor->setValue('JUDUL_KP_FINAL', $seminar->judul_kp_final ?? 'N/A');
-
-            // Data Dosen Pembimbing
             $templateProcessor->setValue('NAMA_DOSEN_PEMBIMBING', $dosenPembimbingUser->name ?? 'N/A');
-            $templateProcessor->setValue('NIDN_DOSEN_PEMBIMBING', $dataDosenPembimbing->nidn ?? ($dataDosenPembimbing->nip ?? 'N/A')); // Prioritaskan NIDN
-
-            // Placeholder untuk penguji (jika belum ada sistemnya, bisa dikosongkan atau diisi strip di template)
-            // Jika sudah ada, ambil datanya dari relasi Seminar ke DosenPenguji
-            $templateProcessor->setValue('NAMA_DOSEN_PENGUJI_1', '(Nama Dosen Penguji 1)');
-            $templateProcessor->setValue('NIDN_DOSEN_PENGUJI_1', '(NIDN Penguji 1)');
-            // $templateProcessor->setValue('NAMA_DOSEN_PENGUJI_2', '(Nama Dosen Penguji 2)');
-            // $templateProcessor->setValue('NIDN_DOSEN_PENGUJI_2', '(NIDN Penguji 2)');
-
-            // Tanggal Cetak/Pengesahan Berita Acara
+            $templateProcessor->setValue('NIDN_DOSEN_PEMBIMBING', $dataDosenPembimbing->nidn ?? 'N/A');
+            $templateProcessor->setValue('NAMA_DOSEN_PENGUJI_1', '(____________________)');
+            $templateProcessor->setValue('NIDN_DOSEN_PENGUJI_1', '(____________________)');
+            $templateProcessor->setValue('JABATAN_PENGESAH_BA', "Ketua Jurusan " . ($jurusanMahasiswa->nama ?? ''));
+            $templateProcessor->setValue('NAMA_PENGESAH_BA', $namaKajur);
+            $templateProcessor->setValue('NIP_PENGESAH_BA', $nipKajur);
             $templateProcessor->setValue('TANGGAL_CETAK_BERITA_ACARA', Carbon::now()->isoFormat('D MMMM YYYY'));
-            $templateProcessor->setValue('TEMPAT_PENERBITAN_BA', 'Purbalingga'); // Sesuaikan
 
-            // Data Penandatangan (misalnya Ketua Jurusan atau pejabat lain)
-            $templateProcessor->setValue('JABATAN_PENANDATANGAN_BA', "Ketua Jurusan " . ($jurusanMahasiswa->nama ?? ''));
-            $templateProcessor->setValue('NAMA_PENANDATANGAN_BA', $namaPenandatanganBA);
-            $templateProcessor->setValue('NIP_PENANDATANGAN_BA', $nipPenandatanganBA);
-
-
-            $safeMahasiswaName = Str::slug($mahasiswaUser->name ?? 'mahasiswa', '_');
-            $fileName = 'Blangko_BA_Seminar_' . $dataMahasiswa->nim . '_' . $safeMahasiswaName . '.docx';
-
-            $tempFile = tempnam(sys_get_temp_dir(), 'PHPWord_BASeminar_');
+            // Generate dan kirim file
+            $safeMahasiswaName = Str::slug($mahasiswaUser->name, '_');
+            $fileName = 'Blangko_BA_Seminar_' . ($dataMahasiswa->nim ?? '000') . '_' . $safeMahasiswaName . '.docx';
+            $tempFile = tempnam(sys_get_temp_dir(), 'PHPWord_BASeminar');
             $templateProcessor->saveAs($tempFile);
 
             return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
 
-        } catch (\PhpOffice\PhpWord\Exception\Exception $e) {
-            // Log::error('PHPWord Exception for Berita Acara: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Gagal membuat dokumen Berita Acara Seminar: ' . $e->getMessage());
         } catch (\Exception $e) {
-            // Log::error('General Exception for Berita Acara: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Gagal membuat dokumen Berita Acara Seminar: Terjadi kesalahan umum.');
+            Log::error('Gagal export Berita Acara Seminar, Seminar ID ' . $seminar->id . ': ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal membuat dokumen Blangko Berita Acara. Terjadi kesalahan pada sistem.');
         }
+    }
+    /**
+     * Membatalkan seminar yang sudah dijadwalkan.
+     */
+    public function cancel(Request $request, Seminar $seminar)
+    {
+        // Hanya seminar yang sudah dijadwalkan yang bisa dibatalkan
+        if ($seminar->status_pengajuan !== 'dijadwalkan_bapendik') {
+            return redirect()->route('bapendik.penjadwalan-seminar.index')
+                ->with('error', 'Hanya seminar yang sudah dijadwalkan yang bisa dibatalkan.');
+        }
+
+        $request->validate([
+            'catatan_pembatalan' => 'required|string|max:1000',
+        ]);
+
+        $seminar->status_pengajuan = 'dibatalkan';
+        // Simpan alasan pembatalan di kolom catatan yang sama
+        $seminar->catatan_komisi = "DIBATALKAN OLEH BAPENDIK: " . $request->catatan_pembatalan;
+        $seminar->save();
+
+        return redirect()->route('bapendik.penjadwalan-seminar.index')
+            ->with('success_modal_message', 'Jadwal seminar untuk ' . $seminar->mahasiswa->user->name . ' telah berhasil dibatalkan.');
     }
 }

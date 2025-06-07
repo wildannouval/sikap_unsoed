@@ -21,6 +21,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // ROUTE BARU UNTUK MELIHAT SEMUA JADWAL SEMINAR FINAL
+    Route::get('/jadwal-seminar-terpublikasi', [\App\Http\Controllers\JadwalSeminarPublikController::class, 'index'])->name('jadwal-seminar.publik.index');
 });
 
 require __DIR__.'/auth.php';
@@ -75,8 +78,16 @@ Route::middleware('auth')->group(function () {
             ->name('validasi-surat.exportWord');
 
         // ROUTE BARU UNTUK MANAJEMEN SPK
-        Route::get('spk', [\App\Http\Controllers\Bapendik\SpkController::class, 'index'])->name('spk.index');
-        Route::get('spk/{pengajuanKp}/export-word', [\App\Http\Controllers\Bapendik\SpkController::class, 'exportSpkWord'])->name('spk.exportWord');
+//        Route::get('spk', [\App\Http\Controllers\Bapendik\SpkController::class, 'index'])->name('spk.index');
+//        Route::get('spk/{pengajuanKp}/export-word', [\App\Http\Controllers\Bapendik\SpkController::class, 'exportSpkWord'])->name('spk.exportWord');
+
+        // GANTI DENGAN INI:
+        Route::resource('spk', \App\Http\Controllers\Bapendik\SpkController::class)->only([
+            'index', 'edit', 'update'
+        ])->parameters(['spk' => 'pengajuanKp']); // Mengganti nama parameter
+
+        Route::get('spk/{pengajuanKp}/export-word', [\App\Http\Controllers\Bapendik\SpkController::class, 'exportSpkWord'])
+            ->name('spk.exportWord');
 
         // ROUTE BARU/PENYESUAIAN UNTUK PENJADWALAN SEMINAR OLEH BAPENDIK
         Route::get('/penjadwalan-seminar', [\App\Http\Controllers\Bapendik\PenjadwalanSeminarController::class, 'index'])
@@ -85,6 +96,9 @@ Route::middleware('auth')->group(function () {
             ->name('penjadwalan-seminar.editJadwal');
         Route::put('/penjadwalan-seminar/{seminar}/simpan-jadwal', [\App\Http\Controllers\Bapendik\PenjadwalanSeminarController::class, 'updateJadwal'])
             ->name('penjadwalan-seminar.updateJadwal');
+        // TAMBAHKAN ROUTE BARU INI UNTUK MEMBATALKAN SEMINAR
+        Route::post('penjadwalan-seminar/{seminar}/cancel', [\App\Http\Controllers\Bapendik\PenjadwalanSeminarController::class, 'cancel'])
+            ->name('penjadwalan-seminar.cancel');
 
         // TAMBAHKAN ROUTE INI UNTUK EXPORT DOKUMEN SEMINAR
         Route::get('/penjadwalan-seminar/{seminar}/export-berita-acara', [\App\Http\Controllers\Bapendik\PenjadwalanSeminarController::class, 'exportBeritaAcaraWord'])
@@ -130,15 +144,24 @@ Route::middleware('auth')->group(function () {
             ->name('seminar.index'); // Untuk mahasiswa melihat daftar/status seminarnya
 
         // ROUTE BARU UNTUK UPLOAD BUKTI DISTRIBUSI LAPORAN (NESTED DI BAWAH PENGAJUAN KP)
-        Route::get('/pengajuan-kp/{pengajuanKp}/distribusi/create', [\App\Http\Controllers\Mahasiswa\DistribusiLaporanController::class, 'create'])
-            ->name('pengajuan-kp.distribusi.create');
-        Route::post('/pengajuan-kp/{pengajuanKp}/distribusi', [\App\Http\Controllers\Mahasiswa\DistribusiLaporanController::class, 'store'])
-            ->name('pengajuan-kp.distribusi.store');
+//        Route::get('/pengajuan-kp/{pengajuanKp}/distribusi/create', [\App\Http\Controllers\Mahasiswa\DistribusiLaporanController::class, 'create'])
+//            ->name('pengajuan-kp.distribusi.create');
+//        Route::post('/pengajuan-kp/{pengajuanKp}/distribusi', [\App\Http\Controllers\Mahasiswa\DistribusiLaporanController::class, 'store'])
+//            ->name('pengajuan-kp.distribusi.store');
 
         // Opsional: Jika mahasiswa perlu melihat detail bukti distribusi yang sudah diupload
         // Route::get('/pengajuan-kp/{pengajuanKp}/distribusi', [\App\Http\Controllers\Mahasiswa\DistribusiLaporanController::class, 'show'])
         //     ->name('pengajuan-kp.distribusi.show');
 
+        // ROUTE DISTRIBUSI LAPORAN
+        Route::get('/distribusi-laporan', [\App\Http\Controllers\Mahasiswa\DistribusiLaporanController::class, 'index'])
+            ->name('distribusi-laporan.index'); // Halaman daftar KP yang siap/sudah distribusi
+        // Route create dan store bisa tetap nested di pengajuan KP atau dibuat terpisah
+        // Jika tetap nested, tombol di halaman index distribusi akan mengarah ke sini
+        Route::get('/pengajuan-kp/{pengajuanKp}/distribusi/create', [\App\Http\Controllers\Mahasiswa\DistribusiLaporanController::class, 'create'])
+            ->name('pengajuan-kp.distribusi.create');
+        Route::post('/pengajuan-kp/{pengajuanKp}/distribusi', [\App\Http\Controllers\Mahasiswa\DistribusiLaporanController::class, 'store'])
+            ->name('pengajuan-kp.distribusi.store');
 
     });
 

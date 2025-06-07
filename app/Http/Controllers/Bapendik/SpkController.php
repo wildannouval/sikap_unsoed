@@ -45,10 +45,26 @@ class SpkController extends Controller
             });
         }
 
+        // --- FILTER STATUS SPK BARU ---
+        if ($request->filled('status_spk_filter')) {
+            if ($request->status_spk_filter == 'sudah_dicetak') {
+                $query->whereNotNull('spk_dicetak_at');
+            } elseif ($request->status_spk_filter == 'belum_dicetak') {
+                $query->whereNull('spk_dicetak_at');
+            }
+        }
+
         $pengajuanKps = $query->paginate(10)->appends($request->query());
         $jurusans = Jurusan::orderBy('nama')->get();
 
-        return view('bapendik.spk.index', compact('pengajuanKps', 'jurusans', 'request'));
+        // Daftar status baru untuk dropdown filter
+        $spkStatuses = [
+            'belum_dicetak' => 'Belum Dicetak',
+            'sudah_dicetak' => 'Sudah Dicetak',
+        ];
+
+
+        return view('bapendik.spk.index', compact('pengajuanKps', 'jurusans', 'request', 'spkStatuses'));
     }
 
     /**
@@ -91,15 +107,15 @@ class SpkController extends Controller
             $bulanRomawi = $this->getRomanMonth(Carbon::now()->month);
             $nomorSpk = sprintf('%03d', $pengajuanKp->id) . "/SPK/FT/{$jurusanMahasiswa->kode}/{$bulanRomawi}/" . Carbon::now()->year;
 
-            // Hitung lama periode KP
-            $lamaPeriode = '';
-            if ($pengajuanKp->tanggal_mulai && $pengajuanKp->tanggal_selesai) {
-                $tglMulai = Carbon::parse($pengajuanKp->tanggal_mulai);
-                $tglSelesai = Carbon::parse($pengajuanKp->tanggal_selesai);
-                $diffInMonths = $tglMulai->diffInMonths($tglSelesai);
-                $lamaPeriode = $diffInMonths . " (" . Str::ucfirst(Carbon::now()->month($diffInMonths)->locale('id')->monthName) . ") Bulan";
-                // Atau cara lain yang lebih presisi jika perlu menghitung hari juga
-            }
+//            // Hitung lama periode KP
+//            $lamaPeriode = '';
+//            if ($pengajuanKp->tanggal_mulai && $pengajuanKp->tanggal_selesai) {
+//                $tglMulai = Carbon::parse($pengajuanKp->tanggal_mulai);
+//                $tglSelesai = Carbon::parse($pengajuanKp->tanggal_selesai);
+//                $diffInMonths = $tglMulai->diffInMonths($tglSelesai);
+//                $lamaPeriode = $diffInMonths . " (" . Str::ucfirst(Carbon::now()->month($diffInMonths)->locale('id')->monthName) . ") Bulan";
+//                // Atau cara lain yang lebih presisi jika perlu menghitung hari juga
+//            }
 
 
             // Set nilai placeholder
@@ -157,5 +173,51 @@ class SpkController extends Controller
         // Untuk bulan, kita hanya butuh sampai XII
         $romanMonths = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'];
         return $romanMonths[$monthNumber] ?? '';
+    }
+
+    /**
+     * Menampilkan form untuk mengelola status SPK (cetak/diambil).
+     */
+    public function edit(PengajuanKp $pengajuanKp)
+    {
+        // Validasi awal
+        if ($pengajuanKp->status_komisi !== 'diterima' || !$pengajuanKp->dosen_pembimbing_id) {
+            return redirect()->route('bapendik.spk.index')->with('error', 'Halaman ini hanya untuk KP yang sudah disetujui Komisi.');
+        }
+        $pengajuanKp->load(['mahasiswa.user', 'mahasiswa.jurusan', 'dosenPembimbing.user']);
+
+        return view('bapendik.spk.edit', compact('pengajuanKp'));
+    }
+
+    /**
+     * Memperbarui status SPK.
+     */
+    public function update(Request $request, PengajuanKp $pengajuanKp)
+    {
+        $request->validate([
+            'spk_dicetak' => 'nullable|boolean',
+            'spk_diambil_at' => 'nullable|date|required_if:spk_dicetak,1',
+            'catatan_spk' => 'nullable|string|max:1000',
+        ]);
+
+        // Cek apakah checkbox "Tandai Sudah Dicetak" dicentang
+        if ($request->has('spk_dicetak') && $request->spk_dicetak == '1') {
+            // Hanya set tanggal cetak jika belum pernah di-set, untuk mencatat kapan pertama kali dicetak
+            if (is_null($pengajuanKp->spk_dicetak_at)) {
+                $pengajuanKp->spk_dicetak_at = now();
+            }
+            // Set atau update tanggal pengambilan
+            $pengajuanKp->spk_diambil_at = $request->spk_diambil_at;
+        } else {
+            // Jika checkbox tidak dicentang, Bapendik bisa membatalkan status cetak
+            $pengajuanKp->spk_dicetak_at = null;
+            $pengajuanKp->spk_diambil_at = null; // Tanggal pengambilan juga dikosongkan
+        }
+
+        $pengajuanKp->catatan_spk = $request->catatan_spk;
+        $pengajuanKp->save();
+
+        return redirect()->route('bapendik.spk.index')
+            ->with('success_modal_message', 'Status SPK untuk mahasiswa ' . $pengajuanKp->mahasiswa->user->name . ' berhasil diperbarui.');
     }
 }

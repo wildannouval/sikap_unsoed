@@ -9,6 +9,7 @@ use App\Models\Ruangan;
 use App\Models\Seminar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class SeminarKpController extends Controller
 {
@@ -19,15 +20,55 @@ class SeminarKpController extends Controller
      */
     public function index()
     {
-        $mahasiswaId = Auth::user()->mahasiswa->id;
-        $seminars = Seminar::where('mahasiswa_id', $mahasiswaId)
-            ->with([
-                'pengajuanKp.dosenPembimbing.user',
-                'pengajuanKp.distribusi'
-                ])
+        $mahasiswa = Auth::user()->mahasiswa;
+        if (!$mahasiswa) {
+            // Seharusnya tidak terjadi jika sudah login sebagai mahasiswa dengan profil lengkap
+            return redirect()->route('mahasiswa.dashboard')->with('error', 'Profil mahasiswa tidak ditemukan.');
+        }
+
+        // Ambil semua seminar yang pernah diajukan mahasiswa ini
+        $seminars = Seminar::where('mahasiswa_id', $mahasiswa->id)
+            ->with(['pengajuanKp.dosenPembimbing.user'])
             ->latest('tanggal_pengajuan_seminar')
             ->paginate(10);
-        return view('mahasiswa.seminar_kp.index', compact('seminars'));
+
+        // Cek apakah mahasiswa bisa mengajukan seminar baru
+        // 1. Cari Pengajuan KP yang aktif dan disetujui Komisi
+        $pengajuanKpAktif = PengajuanKp::where('mahasiswa_id', $mahasiswa->id)
+            ->where('status_komisi', 'diterima')
+            ->where('status_kp', 'dalam_proses') // KP harus sedang berjalan
+            ->withCount(['konsultasis as jumlah_konsultasi_verified' => function ($query) {
+                $query->where('diverifikasi', true);
+            }])
+            ->with(['seminars' => function($q) { // Untuk cek seminar aktif
+                $q->whereIn('status_pengajuan', ['diajukan_mahasiswa', 'disetujui_dospem', 'dijadwalkan_komisi']);
+            }])
+            ->first();
+
+        $bisaAjukanSeminarBaru = false;
+        $pesanSyaratSeminar = "";
+
+        if ($pengajuanKpAktif) {
+            if ($pengajuanKpAktif->jumlah_konsultasi_verified >= self::MIN_KONSULTASI_VERIFIED) {
+                if ($pengajuanKpAktif->seminars->isEmpty()) { // Belum ada seminar aktif/diajukan untuk KP ini
+                    $bisaAjukanSeminarBaru = true;
+                } else {
+                    $pesanSyaratSeminar = "Anda sudah memiliki pengajuan seminar yang sedang diproses atau telah dijadwalkan untuk KP ini.";
+                }
+            } else {
+                $pesanSyaratSeminar = "Anda memerlukan minimal " . self::MIN_KONSULTASI_VERIFIED . " konsultasi yang telah diverifikasi. Saat ini Anda memiliki " . $pengajuanKpAktif->jumlah_konsultasi_verified . " sesi terverifikasi untuk KP: \"" . Str::limit($pengajuanKpAktif->judul_kp, 30) . "\".";
+            }
+        } else {
+            $pesanSyaratSeminar = "Tidak ada Kerja Praktek aktif yang memenuhi syarat untuk diajukan seminar.";
+        }
+
+
+        return view('mahasiswa.seminar.index', compact(
+            'seminars',
+            'pengajuanKpAktif', // Kirim KP aktif untuk link tombol "Ajukan"
+            'bisaAjukanSeminarBaru',
+            'pesanSyaratSeminar'
+        ));
     }
 
     /**
@@ -60,7 +101,7 @@ class SeminarKpController extends Controller
         // Ambil daftar ruangan yang tersedia
         $daftarRuangan = Ruangan::where('is_tersedia', true)->orderBy('nama_ruangan')->get();
 
-        return view('mahasiswa.seminar_kp.create', compact('pengajuanKp', 'jumlahKonsultasiVerified','daftarRuangan'));
+        return view('mahasiswa.seminar.create', compact('pengajuanKp', 'jumlahKonsultasiVerified','daftarRuangan'));
     }
 
     /**
@@ -114,6 +155,6 @@ class SeminarKpController extends Controller
         ]);
 
         return redirect()->route('mahasiswa.seminar.index')
-            ->with('success', 'Pengajuan seminar KP berhasil dikirim dengan usulan jadwal Anda.');
+            ->with('success_modal_message', 'Pengajuan seminar KP berhasil dikirim dengan usulan jadwal Anda.');
     }
 }
