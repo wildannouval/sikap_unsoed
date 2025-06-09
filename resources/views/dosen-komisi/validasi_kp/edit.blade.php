@@ -114,9 +114,9 @@
                                     </div>
 
                                     <div id="alasan_ditolak_div" class="mb-6" style="{{ old('status_komisi', $pengajuanKp->status_komisi) == 'ditolak' ? '' : 'display:none;' }}">
-                                        <label for="alasan_tidak_layak" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Alasan Penolakan/Tidak Layak <span class="text-red-500">*</span></label>
-                                        <textarea id="alasan_tidak_layak" name="alasan_tidak_layak" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600" placeholder="Jelaskan alasan penolakan di sini...">{{ old('alasan_tidak_layak', $pengajuanKp->alasan_tidak_layak) }}</textarea>
-                                        @error('alasan_tidak_layak') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
+                                        <label for="alasan_ditolak" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Alasan Penolakan<span class="text-red-500">*</span></label>
+                                        <textarea id="alasan_ditolak" name="alasan_ditolak" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600" placeholder="Jelaskan alasan penolakan di sini...">{{ old('alasan_ditolak', $pengajuanKp->alasan_ditolak) }}</textarea>
+                                        @error('alasan_ditolak') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                                     </div>
 
                                     <div class="flex items-center space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">

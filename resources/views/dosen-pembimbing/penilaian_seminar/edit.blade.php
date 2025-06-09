@@ -71,11 +71,11 @@
                             @error('nilai_seminar_angka') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                         </div>
 
-                        <div>
-                            <label for="catatan_hasil_seminar" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Catatan Hasil Seminar (Revisi, dll)</label>
-                            <textarea id="catatan_hasil_seminar" name="catatan_hasil_seminar" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white @error('catatan_hasil_seminar') border-red-500 @enderror">{{ old('catatan_hasil_seminar', $seminar->catatan_hasil_seminar) }}</textarea>
-                            @error('catatan_hasil_seminar') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
-                        </div>
+{{--                        <div>--}}
+{{--                            <label for="catatan_hasil_seminar" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Catatan Hasil Seminar (Revisi, dll)</label>--}}
+{{--                            <textarea id="catatan_hasil_seminar" name="catatan_hasil_seminar" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white @error('catatan_hasil_seminar') border-red-500 @enderror">{{ old('catatan_hasil_seminar', $seminar->catatan_hasil_seminar) }}</textarea>--}}
+{{--                            @error('catatan_hasil_seminar') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror--}}
+{{--                        </div>--}}
 
                         <div>
                             <label for="berita_acara_file" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Upload File Berita Acara Seminar (PDF/JPG/PNG, max 2MB)</label>

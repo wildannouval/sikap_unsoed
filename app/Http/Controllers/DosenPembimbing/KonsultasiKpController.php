@@ -5,6 +5,7 @@ namespace App\Http\Controllers\DosenPembimbing;
 use App\Http\Controllers\Controller;
 use App\Models\Konsultasi;
 use App\Models\PengajuanKp;
+use App\Notifications\KonsultasiDiverifikasi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -63,6 +64,10 @@ class KonsultasiKpController extends Controller
         // Jika sudah diverifikasi dan checkbox dicentang, tanggal_verifikasi tidak diupdate lagi
 
         $konsultasi->save();
+        // --- KIRIM NOTIFIKASI KE MAHASISWA ---
+        $mahasiswaUser = $konsultasi->mahasiswa->user;
+        $mahasiswaUser->notify(new KonsultasiDiverifikasi($konsultasi));
+        // --- AKHIR BLOK NOTIFIKASI ---
 
         return redirect()->route('dosen-pembimbing.bimbingan-kp.konsultasi.show', $konsultasi->pengajuan_kp_id)
             ->with('success', 'Catatan konsultasi berhasil diperbarui/diverifikasi.');

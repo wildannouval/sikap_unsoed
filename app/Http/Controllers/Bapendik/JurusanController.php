@@ -44,7 +44,6 @@ class JurusanController extends Controller
             'nama' => 'required|string|max:255',
             'fakultas' => 'required|string|max:255',
             'jenjang' => 'required|string|max:10',
-            'akreditasi' => 'nullable|string|max:5',
         ]);
 
         Jurusan::create($request->all());
@@ -75,7 +74,6 @@ class JurusanController extends Controller
             'nama' => 'required|string|max:255',
             'fakultas' => 'required|string|max:255',
             'jenjang' => 'required|string|max:10',
-            'akreditasi' => 'nullable|string|max:5',
         ]);
 
         $jurusan->update($request->all());

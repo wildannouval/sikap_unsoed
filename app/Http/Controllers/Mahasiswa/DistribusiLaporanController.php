@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Mahasiswa;
 use App\Http\Controllers\Controller;
 use App\Models\Distribusi;
 use App\Models\PengajuanKp;
+use App\Models\User;
+use App\Notifications\BuktiDistribusiDiunggah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class DistribusiLaporanController extends Controller
 {
@@ -96,13 +99,27 @@ class DistribusiLaporanController extends Controller
             $pathBerkasDistribusi = $file->storeAs('bukti_distribusi_laporan', $fileName, 'public');
         }
 
-        Distribusi::create([
+        $distribusi = Distribusi::create([
             'pengajuan_kp_id' => $pengajuanKp->id,
             'mahasiswa_id' => $mahasiswa->id,
             'berkas_distribusi' => $pathBerkasDistribusi,
             'tanggal_distribusi' => $request->tanggal_distribusi,
             'catatan_mahasiswa' => $request->catatan_mahasiswa,
         ]);
+
+        // --- KIRIM NOTIFIKASI ---
+        // 1. Ambil semua Bapendik
+        $bapendiks = User::where('role', 'bapendik')->get();
+        // 2. Ambil Dosen Pembimbing
+        $dosenPembimbingUser = $pengajuanKp->dosenPembimbing->user;
+
+        if ($dosenPembimbingUser) {
+            $dosenPembimbingUser->notify(new BuktiDistribusiDiunggah($distribusi));
+        }
+        if ($bapendiks->isNotEmpty()) {
+            Notification::send($bapendiks, new BuktiDistribusiDiunggah($distribusi));
+        }
+        // --- AKHIR BLOK NOTIFIKASI ---
 
         // Opsional: Update status_kp di tabel pengajuan_kps
         // $pengajuanKp->status_kp = 'laporan_terdistribusi';

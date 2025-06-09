@@ -7,12 +7,16 @@ use App\Http\Controllers\Traits\DocumentHelpers; // Trait untuk fungsi bantuan
 use App\Models\Seminar;
 use App\Models\Jurusan;
 use App\Models\Ruangan;
+use App\Notifications\RevisiJadwalDiminta;
+use App\Notifications\SeminarDibatalkan;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Illuminate\Support\Facades\Log;
+use App\Notifications\SeminarTelahDijadwalkan;
+use Illuminate\Support\Facades\Notification;
 
 class PenjadwalanSeminarController extends Controller
 {
@@ -113,6 +117,7 @@ class PenjadwalanSeminarController extends Controller
             'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
             'ruangan' => 'required|string|max:255|exists:ruangans,nama_ruangan', // Validasi bahwa ruangan ada di tabel
             'catatan_komisi' => 'nullable|string|max:1000',
+            'ba_tanggal_pengambilan' => 'nullable|date|after_or_equal:tanggal_seminar',
         ]);
 
         if ($request->tindakan_bapendik === 'tetapkan_jadwal') {
@@ -122,10 +127,30 @@ class PenjadwalanSeminarController extends Controller
             $seminar->ruangan = $request->ruangan;
             $seminar->status_pengajuan = 'dijadwalkan_bapendik'; // Status baru
             $seminar->catatan_komisi = $request->catatan_komisi; // Catatan bisa opsional di sini
+            $seminar->ba_tanggal_pengambilan = $request->ba_tanggal_pengambilan;
+            $message = 'Jadwal seminar berhasil ditetapkan.';
+            // --- KIRIM NOTIFIKASI ---
+            // 1. Notifikasi ke Mahasiswa
+            $mahasiswaUser = $seminar->mahasiswa->user;
+            $mahasiswaUser->notify(new SeminarTelahDijadwalkan($seminar));
+
+            // 2. Notifikasi ke Dosen Pembimbing
+            $dosenPembimbingUser = $seminar->pengajuanKp->dosenPembimbing->user;
+            $dosenPembimbingUser->notify(new SeminarTelahDijadwalkan($seminar));
+
             $message = 'Jadwal seminar berhasil ditetapkan.';
         } elseif ($request->tindakan_bapendik === 'minta_revisi') {
             $seminar->status_pengajuan = 'revisi_jadwal_bapendik'; // Status baru
             $seminar->catatan_komisi = $request->catatan_komisi; // Wajib diisi
+
+            // --- KIRIM NOTIFIKASI REVISI ---
+            $penerimaNotifikasi = [
+                $seminar->mahasiswa->user,
+                $seminar->pengajuanKp->dosenPembimbing->user
+            ];
+            Notification::send($penerimaNotifikasi, new RevisiJadwalDiminta($seminar));
+            // --- AKHIR BLOK NOTIFIKASI ---
+
             $message = 'Permintaan revisi jadwal telah dikirim ke mahasiswa.';
         }
 
@@ -224,6 +249,14 @@ class PenjadwalanSeminarController extends Controller
         // Simpan alasan pembatalan di kolom catatan yang sama
         $seminar->catatan_komisi = "DIBATALKAN OLEH BAPENDIK: " . $request->catatan_pembatalan;
         $seminar->save();
+
+        // --- KIRIM NOTIFIKASI PEMBATALAN ---
+        $penerimaNotifikasi = [
+            $seminar->mahasiswa->user,
+            $seminar->pengajuanKp->dosenPembimbing->user
+        ];
+        Notification::send($penerimaNotifikasi, new SeminarDibatalkan($seminar));
+        // --- AKHIR BLOK NOTIFIKASI ---
 
         return redirect()->route('bapendik.penjadwalan-seminar.index')
             ->with('success_modal_message', 'Jadwal seminar untuk ' . $seminar->mahasiswa->user->name . ' telah berhasil dibatalkan.');

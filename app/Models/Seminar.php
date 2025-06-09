@@ -14,6 +14,7 @@ class Seminar extends Model
       'tanggal_pengajuan_seminar' => 'date',
       'tanggal_seminar' => 'date',
         'nilai_seminar_angka' => 'decimal:2',
+        'ba_tanggal_pengambilan' => 'date',
         // 'jam_mulai' => 'datetime:H:i', // Atau biarkan sebagai string jika tidak sering dimanipulasi
         // 'jam_selesai' => 'datetime:H:i',
     ];

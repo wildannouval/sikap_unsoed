@@ -11,11 +11,32 @@ class PengajuanKp extends Model
     protected $table = 'pengajuan_kps';
 
     // menggunakan guarded agar semua kolom bisa diisi, atau definisikan di $fillable
-    protected $guarded = ['id'];
+//    protected $guarded = ['id'];
+    protected $fillable = [
+        'mahasiswa_id',
+        'surat_pengantar_id',
+        'judul_kp',
+        'instansi_lokasi',
+        'dosen_pembimbing_id',
+        'proposal_kp',
+        'surat_keterangan',
+        'tanggal_pengajuan',
+        'status_komisi',
+        'alasan_ditolak',
+        'tanggal_diterima_komisi',
+        'tanggal_mulai_kp',     // Gunakan nama kolom baru
+        'tanggal_selesai_kp',   // Gunakan nama kolom baru
+        'status_kp',
+        'nilai_akhir_angka',
+        'nilai_akhir_huruf',
+        'spk_dicetak_at',
+        'spk_diambil_at',
+        'catatan_spk',
+    ];
     protected $casts = [
         'tanggal_pengajuan' => 'date',
-        'tanggal_mulai' => 'date',
-        'tanggal_selesai' => 'date',
+        'tanggal_mulai_kp' => 'date',
+        'tanggal_selesai_kp' => 'date',
         'tanggal_diterima_komisi' => 'date',
         'nilai_akhir_angka' => 'decimal:2',
         'spk_dicetak_at' => 'datetime',

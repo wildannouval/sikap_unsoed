@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Bapendik;
 use App\Http\Controllers\Controller;
 use App\Models\Jurusan;
 use App\Models\SuratPengantar;
+use App\Notifications\ResponSuratPengantar;
 use Illuminate\Http\Request;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Illuminate\Support\Facades\Auth; // Jika diperlukan
@@ -109,6 +110,16 @@ class ValidasiSuratController extends Controller
         }
 
         $suratPengantar->save();
+
+        // --- AWAL BAGIAN BARU: MENGIRIM NOTIFIKASI KE MAHASISWA ---
+        // Ambil user yang terkait dengan mahasiswa pemilik surat pengantar
+        $mahasiswaUser = $suratPengantar->mahasiswa->user;
+
+        // Kirim notifikasi
+        if ($mahasiswaUser) {
+            $mahasiswaUser->notify(new ResponSuratPengantar($suratPengantar));
+        }
+        // --- AKHIR BAGIAN BARU ---
 
         return redirect()->route('bapendik.validasi-surat.index')
             ->with('success_modal_message', 'Status pengajuan surat berhasil diperbarui.');

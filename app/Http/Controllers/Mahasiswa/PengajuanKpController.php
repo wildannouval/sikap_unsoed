@@ -7,6 +7,10 @@ use App\Models\PengajuanKp;
 use App\Models\SuratPengantar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use App\Models\Dosen;
+use App\Notifications\PengajuanKpBaru;
+use Illuminate\Support\Facades\Notification;
 
 class PengajuanKpController extends Controller
 {
@@ -96,7 +100,7 @@ class PengajuanKpController extends Controller
             $pathSuratKeterangan = $fileSuratKeterangan->storeAs('surat_keterangan_instansi', $namaFileSuratKeterangan, 'public');
         }
         $user = Auth::user();
-        PengajuanKp::create([
+        $pengajuanKp= PengajuanKp::create([
             'mahasiswa_id' => $user->mahasiswa->id,
             'surat_pengantar_id' => $request->surat_pengantar_id,
             'judul_kp' => $request->judul_kp,
@@ -107,6 +111,20 @@ class PengajuanKpController extends Controller
             'status_komisi' => 'direview', // Status awal saat pengajuan
             'status_kp' => 'pengajuan',    // Status KP awal
         ]);
+
+        // --- AWAL BAGIAN BARU: MENGIRIM NOTIFIKASI ---
+
+        // 1. Ambil semua user Dosen yang merupakan anggota Komisi
+        $dosenKomisi = User::where('role', 'dosen')
+            ->whereHas('dosen', function ($query) {
+                $query->where('is_komisi', true);
+            })->get();
+
+        // 2. Kirim notifikasi ke semua Dosen Komisi jika ada
+        if ($dosenKomisi->isNotEmpty()) {
+            Notification::send($dosenKomisi, new PengajuanKpBaru($pengajuanKp));
+        }
+        // --- AKHIR BAGIAN BARU ---
 
         return redirect()->route('mahasiswa.pengajuan-kp.index')
             ->with('success_modal_message', 'Pengajuan KP berhasil dikirim.');

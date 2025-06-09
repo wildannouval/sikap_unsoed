@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Mahasiswa;
 
 use App\Http\Controllers\Controller;
 use App\Models\SuratPengantar;
+use App\Models\User; // Import model User untuk mencari Bapendik
+use App\Notifications\PengajuanSuratPengantarBaru; // Import kelas Notifikasi
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification; // Import Fassad Notifikasi
 
 class SuratPengantarController extends Controller
 {
@@ -14,9 +17,9 @@ class SuratPengantarController extends Controller
      */
     public function index()
     {
-        $mahasiswaId = Auth::user()->mahasiswa->id; // Pastikan relasi 'mahasiswa' ada di model User
+        $mahasiswaId = Auth::user()->mahasiswa->id;
         $suratPengantars = SuratPengantar::where('mahasiswa_id', $mahasiswaId)
-            ->latest()
+            ->latest('tanggal_pengajuan')
             ->paginate(10);
         return view('mahasiswa.surat_pengantar.index', compact('suratPengantars'));
     }
@@ -39,15 +42,15 @@ class SuratPengantarController extends Controller
             'penerima_surat' => 'required|string|max:255',
             'alamat_surat' => 'required|string',
             'tembusan_surat' => 'nullable|string',
-            'tahun_akademik' => 'required|string|max:9', // contoh: 2024/2025
+            'tahun_akademik' => 'required|string|max:9',
         ]);
 
         $mahasiswa = Auth::user()->mahasiswa;
         if (!$mahasiswa) {
-            return redirect()->back()->with('error', 'Profil mahasiswa tidak ditemukan.');
+            return redirect()->back()->with('error', 'Profil mahasiswa tidak ditemukan.')->withInput();
         }
 
-        SuratPengantar::create([
+        $suratPengantar = SuratPengantar::create([
             'mahasiswa_id' => $mahasiswa->id,
             'lokasi_penelitian' => $request->lokasi_penelitian,
             'penerima_surat' => $request->penerima_surat,
@@ -55,10 +58,17 @@ class SuratPengantarController extends Controller
             'tembusan_surat' => $request->tembusan_surat,
             'tahun_akademik' => $request->tahun_akademik,
             'tanggal_pengajuan' => now(),
-            'status_bapendik' => 'menunggu', // Status awal
+            'status_bapendik' => 'menunggu',
         ]);
 
+        // Mengirim Notifikasi ke Bapendik
+        $bapendiks = User::where('role', 'bapendik')->get();
+        if ($bapendiks->isNotEmpty()) {
+            Notification::send($bapendiks, new PengajuanSuratPengantarBaru($suratPengantar));
+        }
+
+        // Redirect dengan pesan untuk Modal Sukses
         return redirect()->route('mahasiswa.surat-pengantar.index')
-            ->with('success_modal_message', 'Pengajuan surat pengantar berhasil dikirim.');
+            ->with('success_modal_message', 'Pengajuan surat pengantar Anda berhasil dikirim!');
     }
 }

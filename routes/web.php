@@ -3,6 +3,7 @@
 use App\Http\Controllers\Bapendik\JurusanController;
 use App\Http\Controllers\Bapendik\PenggunaController;
 use App\Http\Controllers\Bapendik\ValidasiSuratController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -53,6 +54,20 @@ Route::middleware('auth')->group(function () {
             default => redirect()->route('login'), // Fallback jika ada masalah
         };
     })->name('home');
+
+    // --- AWAL ROUTE UNTUK NOTIFIKASI ---
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        // Halaman untuk menampilkan semua notifikasi
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+
+        // Route untuk menandai semua notifikasi sebagai sudah dibaca
+        Route::post('/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('markAllAsRead');
+
+        // Route untuk menandai satu notifikasi sebagai sudah dibaca dan redirect
+        // {notification} adalah ID notifikasi dari tabel notifications
+        Route::get('/{notification}', [NotificationController::class, 'readAndRedirect'])->name('show');
+    });
+    // --- AKHIR ROUTE UNTUK NOTIFIKASI ---
 
     // Group per role
     Route::prefix('bapendik')->middleware(['auth','role:bapendik'])->name('bapendik.')->group(function () {

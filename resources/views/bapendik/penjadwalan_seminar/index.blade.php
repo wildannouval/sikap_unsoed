@@ -113,14 +113,16 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-center whitespace-nowrap">
+                                    {{-- Tombol untuk memproses/mengedit jadwal --}}
                                     <a href="{{ route('bapendik.penjadwalan-seminar.editJadwal', $seminar->id) }}" class="inline-flex items-center text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-1.5 mb-1 md:mb-0 md:me-1 dark:bg-blue-500 dark:hover:bg-blue-600 focus:outline-none dark:focus:ring-blue-800 transition-colors duration-150">
                                         <svg class="w-3.5 h-3.5 mr-1 -ml-0.5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
-                                        {{ ($seminar->status_pengajuan == 'dijadwalkan_komisi' || $seminar->status_pengajuan == 'revisi_jadwal_komisi') ? 'Edit Jadwal' : 'Tetapkan Jadwal' }}
+                                        {{ ($seminar->status_pengajuan == 'dijadwalkan_bapendik' || $seminar->status_pengajuan == 'revisi_jadwal_bapendik') ? 'Edit Jadwal' : 'Tetapkan Jadwal' }}
                                     </a>
 
-                                    @if($seminar->status_pengajuan == 'dijadwalkan_komisi' || $seminar->status_pengajuan == 'selesai_dinilai')
-                                        <a href="{{ route('bapendik.penjadwalan-seminar.exportBeritaAcaraWord', $seminar->id) }}" class="inline-flex items-center text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-xs px-3 py-1.5 mb-1 md:mb-0 md:me-1 dark:bg-green-500 dark:hover:bg-green-600 focus:outline-none dark:focus:ring-green-800 transition-colors duration-150" target="_blank">
-                                            <svg class="w-3.5 h-3.5 mr-1 -ml-0.5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"></path></svg>
+                                    {{-- KEMBALIKAN TOMBOL EXPORT INI --}}
+                                    @if($seminar->status_pengajuan == 'dijadwalkan_bapendik' || $seminar->status_pengajuan == 'selesai_dinilai')
+                                        <a href="{{ route('bapendik.penjadwalan-seminar.exportBeritaAcaraWord', $seminar->id) }}" class="inline-flex items-center text-white bg-teal-600 hover:bg-teal-700 focus:ring-4 focus:ring-teal-300 font-medium rounded-lg text-xs px-3 py-1.5 mb-1 md:mb-0 dark:bg-teal-500 dark:hover:bg-teal-600 focus:outline-none dark:focus:ring-teal-800 transition-colors duration-150" target="_blank" title="Export Blangko Berita Acara">
+                                            <svg class="w-3.5 h-3.5 mr-1.5 -ml-0.5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd"></path></svg>
                                             Blangko BA
                                         </a>
                                     @endif

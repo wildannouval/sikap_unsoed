@@ -117,6 +117,10 @@ class SeminarApprovalController extends Controller
         }
 
         $seminar->save();
+        // --- KIRIM NOTIFIKASI KE MAHASISWA ---
+        $mahasiswaUser = $seminar->mahasiswa->user;
+        $mahasiswaUser->notify(new ResponPengajuanSeminar($seminar));
+        // --- AKHIR BLOK NOTIFIKASI ---
 
         return redirect()->route('dosen-pembimbing.seminar-approval.index')
             ->with('success_modal_message', 'Pengajuan seminar mahasiswa telah berhasil diproses.');

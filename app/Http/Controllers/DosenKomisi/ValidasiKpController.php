@@ -8,6 +8,10 @@ use App\Models\PengajuanKp;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+// TAMBAHKAN USE STATEMENTS
+use App\Notifications\PengajuanKpDiterimaUntukMahasiswa;
+use App\Notifications\PenunjukanSebagaiPembimbing;
+use Illuminate\Support\Facades\Notification;
 
 class ValidasiKpController extends Controller
 {
@@ -125,16 +129,27 @@ class ValidasiKpController extends Controller
             $pengajuanKp->status_kp = 'dalam_proses'; // Ubah status KP mahasiswa
             $pengajuanKp->tanggal_mulai_kp = $request->tanggal_mulai_kp ? $request->tanggal_mulai_kp : null;
             $pengajuanKp->tanggal_selesai_kp = $request->tanggal_selesai_kp ? $request->tanggal_selesai_kp : null;
+
+            // --- KIRIM NOTIFIKASI ---
+            // 1. Notifikasi ke Mahasiswa
+            $mahasiswaUser = $pengajuanKp->mahasiswa->user;
+            $mahasiswaUser->notify(new PengajuanKpDiterimaUntukMahasiswa($pengajuanKp));
+
+            // 2. Notifikasi ke Dosen Pembimbing yang ditunjuk
+            if ($pengajuanKp->dosenPembimbing) {
+                $dosenPembimbingUser = $pengajuanKp->dosenPembimbing->user;
+                $dosenPembimbingUser->notify(new PenunjukanSebagaiPembimbing($pengajuanKp));
+            }
         } else if ($request->status_komisi == 'ditolak') {
             $pengajuanKp->tanggal_diterima_komisi = null; // Hapus tanggal jika ditolak
             $pengajuanKp->status_kp = 'tidak_lulus'; // Atau status lain yang sesuai
             $pengajuanKp->tanggal_mulai_kp = null;
             $pengajuanKp->tanggal_selesai_kp = null;
+
         } else { // direview
             $pengajuanKp->tanggal_diterima_komisi = null;
             // status_kp mungkin kembali ke 'pengajuan' atau tetap 'direview' oleh komisi
         }
-
         $pengajuanKp->save();
 
         return redirect()->route('dosen-komisi.validasi-kp.index')
