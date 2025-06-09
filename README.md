@@ -1,61 +1,143 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SIKAP - Sistem Informasi Kerja Praktek
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="public/images/logo_unsoed.png" alt="Logo SIKAP" width="150"/>
 </p>
 
-## About Laravel
+<p align="center">
+  Aplikasi web untuk mengelola dan memfasilitasi seluruh alur proses Kerja Praktek (KP) mahasiswa di Fakultas Teknik.
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## ✨ Fitur Utama
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+-   **Manajemen Multi-Peran:** Sistem otentikasi dan otorisasi dengan 4 peran utama: Mahasiswa, Dosen (Pembimbing & Komisi), dan Bapendik.
+-   **Dashboard Informatif:** Setiap peran memiliki dashboard sendiri yang menyoroti tugas mendesak dan statistik kunci.
+-   **Alur Kerja KP End-to-End:** Mengelola seluruh proses, mulai dari pengajuan surat pengantar, pengajuan KP, bimbingan, pengajuan seminar, penjadwalan, penilaian, hingga distribusi laporan akhir.
+-   **Notifikasi In-App:** Sistem notifikasi berbasis database untuk memberitahu pengguna tentang pembaruan status atau tugas yang memerlukan tindakan.
+-   **Manajemen Data Master:** Antarmuka CRUD yang konsisten untuk Bapendik mengelola data penting seperti Jurusan, Pengguna, dan Ruangan Seminar.
+-   **Export Dokumen:** Kemampuan untuk men-generate dokumen resmi (Surat Pengantar, SPK, Berita Acara) dalam format `.docx`.
+-   **Tampilan Modern & Responsif:** Dibangun dengan Laravel, Vite, Tailwind CSS, dan Flowbite untuk pengalaman pengguna yang bersih, modern, dan dapat diakses di berbagai perangkat.
+-   **Dark Mode:** Pilihan tema gelap dan terang untuk kenyamanan pengguna.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🚀 Instalasi & Setup Proyek
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Berikut adalah langkah-langkah untuk menjalankan proyek ini di lingkungan development.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Prasyarat
+- PHP 8.3 atau lebih tinggi
+- Composer
+- Node.js & NPM (atau Yarn)
+- Database Server (MySQL direkomendasikan)
 
-## Laravel Sponsors
+### Langkah-langkah Instalasi
+1.  **Clone Repositori**
+    ```bash
+    git clone [https://github.com/username/sikap-project.git](https://github.com/username/sikap-project.git)
+    cd sikap-project
+    ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+2.  **Instal Dependensi PHP**
+    ```bash
+    composer install
+    ```
 
-### Premium Partners
+3.  **Instal Dependensi JavaScript**
+    ```bash
+    npm install
+    ```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+4.  **Setup File `.env`**
+    Salin file `.env.example` menjadi `.env`.
+    ```bash
+    cp .env.example .env
+    ```
+    Buka file `.env` dan konfigurasikan koneksi database-mu:
+    ```env
+    DB_CONNECTION=mysql
+    DB_HOST=127.0.0.1
+    DB_PORT=3306
+    DB_DATABASE=sikap_unsoed
+    DB_USERNAME=root
+    DB_PASSWORD=
+    ```
 
-## Contributing
+5.  **Generate Application Key**
+    ```bash
+    php artisan key:generate
+    ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+6.  **Jalankan Migrasi dan Seeder**
+    Perintah ini akan membuat semua tabel di database dan mengisinya dengan data demo yang sudah disiapkan.
+    ```bash
+    php artisan migrate:fresh --seed
+    ```
 
-## Code of Conduct
+7.  **Jalankan Server Development**
+    - Buka satu terminal dan jalankan server Vite untuk kompilasi aset front-end:
+        ```bash
+        npm run dev
+        ```
+    - Buka terminal kedua dan jalankan server Laravel:
+        ```bash
+        php artisan serve
+        ```
+    Aplikasi sekarang dapat diakses di `http://127.0.0.1:8000`.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## 🔑 Akun Demo
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Setelah menjalankan seeder, kamu bisa login menggunakan akun-akun berikut. **Password untuk semua akun adalah `password`**.
 
-## License
+-   **Bapendik:** `bapendik@sikap.test`
+-   **Dosen Komisi:** `komisi@sikap.test`
+-   **Dosen Pembimbing:** `dospem@sikap.test`
+-   **Mahasiswa (dengan alur aktif):** `mahasiswa@sikap.test`
+-   **Mahasiswa (baru, belum ada alur):** `mahasiswabaru@sikap.test`
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## 🛠️ Teknologi yang Digunakan
+
+Aplikasi ini dibangun menggunakan tumpukan teknologi modern, antara lain:
+-   **Backend:** Laravel 12
+-   **Frontend:** Vite, Tailwind CSS, Alpine.js
+-   **UI Components:** Flowbite
+-   **Database:** MySQL
+-   **Export Dokumen:** `phpoffice/phpword`
+
+---
+
+## 📖 Alur Status Utama
+
+Aplikasi ini menggunakan beberapa status kunci untuk melacak progres.
+
+#### Status Pengajuan KP (`pengajuan_kps.status_kp`)
+1.  `pengajuan`
+2.  `dalam_proses`
+3.  `lulus`
+4.  `tidak_lulus`
+
+#### Status Seminar (`seminars.status_pengajuan`)
+1.  `diajukan_mahasiswa`
+2.  `disetujui_dospem`
+3.  `ditolak_dospem`
+4.  `revisi_dospem`
+5.  `dijadwalkan_bapendik`
+6.  `revisi_jadwal_bapendik`
+7.  `dibatalkan`
+8.  `selesai_dinilai`
+
+---
+
+## 📄 Lisensi & Copyright
+
+Aplikasi ini merupakan bagian dari pemenuhan Tugas Akhir.
+
+**Copyright © 2025 - Wildan Nouval Rizki (H1D021017)**
+
+Dibuat sebagai bagian dari program studi Informatika, Fakultas Teknik, Universitas Jenderal Soedirman. Seluruh hak cipta dilindungi.
