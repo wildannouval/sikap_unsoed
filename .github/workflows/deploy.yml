@@ -1,5 +1,5 @@
 # Nama workflow yang akan tampil di tab Actions GitHub
-name: Deploy Aplikasi SIKAP ke VPS
+name: Deploy SIKAP Application to VPS
 
 # Pemicu: Jalankan workflow ini setiap kali ada push ke branch 'main'
 on:
@@ -8,50 +8,17 @@ on:
 
 jobs:
   deploy:
+    # Menggunakan server virtual Ubuntu terbaru dari GitHub untuk menjalankan proses
     runs-on: ubuntu-latest
 
+    # Langkah-langkah yang akan dieksekusi
     steps:
-      # 1. Mengambil kode dari repository Anda
-      - name: 1. Checkout Code from Repository
+      # Langkah ini hanya untuk memastikan workflow ini bisa berjalan
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Setup PHP dengan versi yang benar
-      - name: 2. Setup PHP Environment
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: mbstring, xml, curl, dom, zip, gd, mysql
-          tools: composer
-
-      # 3. Setup Node.js
-      - name: 3. Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      # 4. Install semua dependensi
-      - name: 4. Install Application Dependencies
-        # PERBAIKAN DI SINI: Flag --no-dev dihapus
-        run: |
-          composer install --prefer-dist --optimize-autoloader
-          npm install
-          npm run build
-
-      # 5. Salin file produksi ke server
-      - name: 5. Copy production files to server
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          port: 22
-          source: "."
-          target: "/var/www/sikap"
-          strip_components: 1
-
-      # 6. Jalankan perintah deployment di server VPS Anda
-      - name: 6. Run deployment commands on server
+      # Langkah utama: Login ke server dan jalankan semua perintah di sana
+      - name: Connect to VPS and Deploy
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -59,12 +26,30 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
+            # 1. Pindah ke direktori aplikasi di server
             cd /var/www/sikap
+
+            # 2. Aktifkan maintenance mode
             sudo php artisan down
+
+            # 3. Tarik kode terbaru dari branch main
+            sudo git pull origin main
+
+            # 4. Instal dependensi PHP (termasuk dev-dependencies seperti Faker)
             sudo composer install --optimize-autoloader
+
+            # 5. Instal dependensi JS & build aset frontend
+            sudo npm install
+            sudo npm run build
+
+            # 6. Jalankan migrasi database jika ada perubahan
             sudo php artisan migrate --force
+
+            # 7. Hapus cache lama dan buat cache baru untuk produksi
             sudo php artisan optimize:clear
             sudo php artisan config:cache
             sudo php artisan route:cache
             sudo php artisan view:cache
+
+            # 8. Nonaktifkan maintenance mode, aplikasi kembali online
             sudo php artisan up
