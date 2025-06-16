@@ -6,18 +6,17 @@ on:
   push:
     branches: [ main ]
 
-# Daftar pekerjaan yang akan dijalankan
 jobs:
   deploy:
-    runs-on: ubuntu-latest # Menggunakan server virtual sementara dari GitHub
+    runs-on: ubuntu-latest
 
     steps:
       # 1. Mengambil kode dari repository Anda
-      - name: Checkout Code
+      - name: 1. Checkout Code from Repository
         uses: actions/checkout@v4
 
-      # 2. Setup PHP dengan versi yang benar dan ekstensi yang dibutuhkan
-      - name: Setup PHP
+      # 2. Setup PHP dengan versi yang benar
+      - name: 2. Setup PHP Environment
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
@@ -25,34 +24,34 @@ jobs:
           tools: composer
 
       # 3. Setup Node.js
-      - name: Setup Node.js
+      - name: 3. Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
       # 4. Install semua dependensi
-      - name: Install Composer Dependencies
-        run: composer install --no-dev --prefer-dist --optimize-autoloader
-      - name: Install NPM Dependencies
-        run: npm install
-      - name: Build Frontend Assets
-        run: npm run build
+      - name: 4. Install Application Dependencies
+        # PERBAIKAN DI SINI: Flag --no-dev dihapus
+        run: |
+          composer install --prefer-dist --optimize-autoloader
+          npm install
+          npm run build
 
-      # 5. Salin file produksi (termasuk .env) ke server
-      - name: Copy production files to server
+      # 5. Salin file produksi ke server
+      - name: 5. Copy production files to server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           port: 22
-          source: "." # Salin semua dari direktori kerja saat ini
+          source: "."
           target: "/var/www/sikap"
-          strip_components: 1 # Untuk menghindari pembuatan subfolder tambahan
+          strip_components: 1
 
       # 6. Jalankan perintah deployment di server VPS Anda
-      - name: Run deployment commands on server
+      - name: 6. Run deployment commands on server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -62,7 +61,7 @@ jobs:
           script: |
             cd /var/www/sikap
             sudo php artisan down
-            sudo composer install --no-dev --optimize-autoloader
+            sudo composer install --optimize-autoloader
             sudo php artisan migrate --force
             sudo php artisan optimize:clear
             sudo php artisan config:cache
