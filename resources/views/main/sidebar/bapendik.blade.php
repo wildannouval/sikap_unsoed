@@ -1,4 +1,4 @@
-<aside aria-label="Sidebar" class="bg-white dark:bg-gray-800 border-b sm:border-r sm:border-b-0 border-gray-200 dark:border-gray-700 fixed top-0 -translate-x-full h-screen left-0 pt-16 sm:pt-20 sm:translate-x-0 transition-transform w-64 z-20" id="logo-sidebar">
+<aside aria-label="Sidebar" class="bg-white dark:bg-gray-800 border-b sm:border-r sm:border-b-0 border-gray-200 dark:border-gray-700 fixed top-0 -translate-x-full h-screen left-0 pt-16 sm:pt-20 sm:translate-x-0 transition-transform w-64 z-40" id="logo-sidebar">
     <div class="h-full px-4 pb-4 overflow-y-auto bg-white dark:bg-gray-800">
         <ul class="space-y-1.5 font-medium mt-5 sm:mt-0">
             <li>
