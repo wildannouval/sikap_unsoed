@@ -11,48 +11,54 @@ class CheckRole
 {
     /**
      * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-
-    public function handle(Request $request, Closure $next, string $expectedRoleParam): Response
+    public function handle(Request $request, Closure $next, string $role): Response
     {
-        $user = Auth::user();
-
-        // Jika tidak ada user yang login, arahkan ke login (atau tampilkan error 401)
-        if (!$user) {
-            return redirect('login');
+        if (!Auth::check() || strtolower(Auth::user()->role) !== strtolower($role)) {
+            abort(403, 'AKSES DITOLAK.');
         }
 
-        $actualUserRole = strtolower($user->role); // Misal: 'mahasiswa', 'bapendik', 'dosen'
-        $expectedRole = strtolower($expectedRoleParam);
-
-        // Jika role utama cocok (misal, mahasiswa ke halaman mahasiswa)
-        if ($actualUserRole === $expectedRole) {
-            return $next($request);
-        }
-
-        // Penanganan khusus untuk dosen dengan sub-peran
-        if ($actualUserRole === 'dosen') {
-            // Jika halaman ini untuk dosen pembimbing
-            if ($expectedRole === 'dosen_pembimbing') {
-                // Asumsi semua dosen yang memiliki profil di tabel 'dosens' bisa jadi pembimbing
-                if ($user->dosen) { // Cek apakah user memiliki relasi 'dosen' (profil dosennya ada)
-                    return $next($request);
-                }
-            }
-            // Jika halaman ini untuk dosen komisi
-            elseif ($expectedRole === 'dosen_komisi') {
-                // Cek flag 'is_komisi' di profil dosennya
-                if ($user->dosen && $user->dosen->is_komisi) {
-                    return $next($request);
-                }
-            }
-        }
-
-        // Jika tidak ada kondisi di atas yang terpenuhi, akses ditolak
-        abort(403, 'ANDA TIDAK MEMILIKI AKSES UNTUK ROLE INI.');
+        return $next($request);
     }
+
+//    public function handle(Request $request, Closure $next, string $expectedRoleParam): Response
+//    {
+//        $user = Auth::user();
+//
+//        // Jika tidak ada user yang login, arahkan ke login (atau tampilkan error 401)
+//        if (!$user) {
+//            return redirect('login');
+//        }
+//
+//        $actualUserRole = strtolower($user->role); // Misal: 'mahasiswa', 'bapendik', 'dosen'
+//        $expectedRole = strtolower($expectedRoleParam);
+//
+//        // Jika role utama cocok (misal, mahasiswa ke halaman mahasiswa)
+//        if ($actualUserRole === $expectedRole) {
+//            return $next($request);
+//        }
+//
+//        // Penanganan khusus untuk dosen dengan sub-peran
+//        if ($actualUserRole === 'dosen') {
+//            // Jika halaman ini untuk dosen pembimbing
+//            if ($expectedRole === 'dosen_pembimbing') {
+//                // Asumsi semua dosen yang memiliki profil di tabel 'dosens' bisa jadi pembimbing
+//                if ($user->dosen) { // Cek apakah user memiliki relasi 'dosen' (profil dosennya ada)
+//                    return $next($request);
+//                }
+//            }
+//            // Jika halaman ini untuk dosen komisi
+//            elseif ($expectedRole === 'dosen_komisi') {
+//                // Cek flag 'is_komisi' di profil dosennya
+//                if ($user->dosen && $user->dosen->is_komisi) {
+//                    return $next($request);
+//                }
+//            }
+//        }
+//
+//        // Jika tidak ada kondisi di atas yang terpenuhi, akses ditolak
+//        abort(403, 'ANDA TIDAK MEMILIKI AKSES UNTUK ROLE INI.');
+//    }
 
 
 //    public function handle(Request $request, Closure $next, string ...$guards): Response

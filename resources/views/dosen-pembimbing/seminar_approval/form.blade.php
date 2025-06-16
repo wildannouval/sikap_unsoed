@@ -2,7 +2,7 @@
 
 @php
     // Tentukan apakah form ini dalam mode edit/proses atau mode lihat detail
-    $isEditableByDospem = ($seminar->status_pengajuan === 'diajukan_mahasiswa');
+    $isEditableByDospem = in_array($seminar->status_pengajuan, ['diajukan_mahasiswa', 'ditolak_dospem', 'revisi_dospem']);
     $pageTitle = $isEditableByDospem ? 'Proses Persetujuan Seminar KP' : 'Detail Persetujuan Seminar KP';
 @endphp
 
@@ -74,30 +74,33 @@
                         @if ($isEditableByDospem)
                             <div class="p-6 border border-gray-200 dark:border-gray-700 rounded-lg">
                                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Formulir Persetujuan</h3>
-                                <form action="{{ route('dosen-pembimbing.seminar-approval.process', $seminar->id) }}" method="POST" class="space-y-6">
+                                <form action="{{ route('dosen.pembimbing.seminar-approval.process', $seminar->id) }}" method="POST" class="space-y-6">
                                     @csrf
                                     {{-- Route::post, jadi @csrf saja cukup --}}
                                     <div>
                                         <label for="tindakan_dospem" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tindakan Anda <span class="text-red-500">*</span></label>
                                         <select id="tindakan_dospem" name="tindakan_dospem" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600" required>
                                             <option value="">-- Pilih Tindakan --</option>
-                                            <option value="setuju" {{ old('tindakan_dospem') == 'setuju' ? 'selected' : '' }}>Setujui Pengajuan Seminar</option>
-                                            <option value="tolak" {{ old('tindakan_dospem') == 'tolak' ? 'selected' : '' }}>Tolak Pengajuan (Minta Revisi)</option>
+                                            <option value="setuju" {{ old('tindakan_dospem', $seminar->status_pengajuan) == 'disetujui_dospem' ? 'selected' : '' }}>Setujui Pengajuan Seminar</option>
+                                            <option value="tolak" {{ old('tindakan_dospem', $seminar->status_pengajuan) == 'ditolak_dospem' ? 'selected' : '' }}>Tolak Pengajuan</option>
+                                            <option value="revisi" {{ old('tindakan_dospem', $seminar->status_pengajuan) == 'revisi_dospem' ? 'selected' : '' }}>Minta Revisi</option>
                                         </select>
                                         @error('tindakan_dospem') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                                     </div>
 
                                     <div>
-                                        <label for="catatan_dospem" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Catatan (Wajib diisi jika menolak)</label>
-                                        <textarea id="catatan_dospem" name="catatan_dospem" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600" placeholder="Berikan alasan jika menolak, atau catatan tambahan jika setuju...">{{ old('catatan_dospem') }}</textarea>
+                                        <label for="catatan_dospem" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Catatan (Wajib jika menolak/revisi)</label>
+                                        <textarea id="catatan_dospem" name="catatan_dospem" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600" placeholder="Berikan alasan jika menolak, atau catatan tambahan jika setuju...">{{ old('catatan_dospem', $seminar->catatan_dospem) }}</textarea>
                                         @error('catatan_dospem') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                                     </div>
 
                                     <div class="flex items-center space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                        <button type="submit" class="inline-flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition-colors duration-150">
+                                        <button type="submit" class="inline-flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                                            <svg class="w-4 h-4 mr-2 -ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
                                             Simpan Keputusan
                                         </button>
-                                        <a href="{{ route('dosen-pembimbing.seminar-approval.index') }}" class="inline-flex items-center text-gray-700 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700 transition-colors duration-150">
+                                        <a href="{{ route('dosen.pembimbing.seminar-approval.index') }}" class="inline-flex items-center text-gray-700 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700">
+                                            <svg class="w-4 h-4 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                             Batal
                                         </a>
                                     </div>

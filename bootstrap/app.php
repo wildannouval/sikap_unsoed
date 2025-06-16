@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias(
             [
                 'role' => \App\Http\Middleware\CheckRole::class,
+                'is_komisi' => \App\Http\Middleware\CheckIsKomisi::class,
             ]
         );
     })

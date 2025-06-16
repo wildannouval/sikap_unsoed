@@ -10,7 +10,7 @@ class JadwalSeminarPublikController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Seminar::where('status_pengajuan', 'dijadwalkan_komisi') // Hanya yang sudah dijadwalkan final
+        $query = Seminar::where('status_pengajuan', 'dijadwalkan_bapendik') // Hanya yang sudah dijadwalkan final
         ->with(['mahasiswa.user', 'mahasiswa.jurusan', 'pengajuanKp.dosenPembimbing.user'])
             ->orderBy('tanggal_seminar', 'asc')
             ->orderBy('jam_mulai', 'asc');

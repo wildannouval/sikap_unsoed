@@ -26,23 +26,38 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
         $request->session()->regenerate();
+        $user = Auth::user();
 
-        $user = Auth::user(); // Ambil user yang sudah login
-        $role = strtolower($user->role);
-        $intendedUrl = $request->session()->pull('url.intended', '/'); // Ambil intended URL atau default ke '/'
-
-        $redirectPath = match($role) {
+        // Logika redirect yang disederhanakan
+        $redirectPath = match(strtolower($user->role)) {
             'bapendik' => route('bapendik.dashboard'),
             'mahasiswa' => route('mahasiswa.dashboard'),
-            'dosen' => ($user->dosen && $user->dosen->is_komisi) ? route('dosen-komisi.dashboard') : route('dosen-pembimbing.dashboard'),
-            default => route('login'), // Seharusnya tidak terjadi jika role di database valid
+            'dosen' => route('dosen.dashboard'),
+            default => '/login',
         };
 
-        // Gunakan redirect biasa jika tidak ada intended URL, atau jika intended URL adalah halaman login itu sendiri
-        if ($intendedUrl === '/' || $intendedUrl === route('login', [], false) ) {
-            return redirect($redirectPath);
-        }
         return redirect()->intended($redirectPath);
+
+//        $request->authenticate();
+//        $request->session()->regenerate();
+//
+//        $user = Auth::user(); // Ambil user yang sudah login
+//        $role = strtolower($user->role);
+//        $intendedUrl = $request->session()->pull('url.intended', '/'); // Ambil intended URL atau default ke '/'
+//
+//        $redirectPath = match($role) {
+//            'bapendik' => route('bapendik.dashboard'),
+//            'mahasiswa' => route('mahasiswa.dashboard'),
+//            'dosen' => ($user->dosen && $user->dosen->is_komisi) ? route('dosen-komisi.dashboard') : route('dosen-pembimbing.dashboard'),
+//            default => route('login'), // Seharusnya tidak terjadi jika role di database valid
+//        };
+//
+//        // Gunakan redirect biasa jika tidak ada intended URL, atau jika intended URL adalah halaman login itu sendiri
+//        if ($intendedUrl === '/' || $intendedUrl === route('login', [], false) ) {
+//            return redirect($redirectPath);
+//        }
+//        return redirect()->intended($redirectPath);
+
 
         // Cek role dan redirect ke dashboard masing-masing
 //        $role = auth()->user()->role;
@@ -66,11 +81,8 @@ class AuthenticatedSessionController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
-
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
-
         return redirect('/');
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\DosenPembimbing;
+namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
 use App\Models\PengajuanKp;
@@ -102,7 +102,7 @@ class PenilaianSeminarController extends Controller
         // --- PERBAIKAN DI SINI JUGA ---
         // Hanya bisa diisi jika statusnya sudah dijadwalkan Bapendik atau sudah pernah dinilai
         if (!in_array($seminar->status_pengajuan, ['dijadwalkan_bapendik', 'selesai_dinilai'])) {
-            return redirect()->route('dosen-pembimbing.penilaian-seminar.index')
+            return redirect()->route('dosen.pembimbing.penilaian-seminar.index')
                 ->with('error', 'Hasil seminar hanya bisa diinput/diedit untuk seminar yang sudah dijadwalkan atau selesai dinilai.');
         }
 
@@ -121,7 +121,7 @@ class PenilaianSeminarController extends Controller
         }
         // --- PERBAIKAN DI SINI JUGA ---
         if (!in_array($seminar->status_pengajuan, ['dijadwalkan_bapendik', 'selesai_dinilai'])) {
-            return redirect()->route('dosen-pembimbing.penilaian-seminar.index')
+            return redirect()->route('dosen.pembimbing.penilaian-seminar.index')
                 ->with('error', 'Gagal menyimpan, status seminar tidak valid untuk penilaian.');
         }
 
@@ -172,7 +172,7 @@ class PenilaianSeminarController extends Controller
             // --- AKHIR BLOK NOTIFIKASI ---
         });
 
-        return redirect()->route('dosen-pembimbing.penilaian-seminar.index')
+        return redirect()->route('dosen.pembimbing.penilaian-seminar.index')
             ->with('success_modal_message', 'Hasil seminar untuk mahasiswa ' . $seminar->mahasiswa->user->name . ' berhasil disimpan dan status KP diperbarui.');
     }
 }

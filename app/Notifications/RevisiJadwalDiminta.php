@@ -32,7 +32,7 @@ class RevisiJadwalDiminta extends Notification
             $url = route('mahasiswa.seminar.index');
         } else { // Untuk dosen
             $message = "Bapendik meminta revisi jadwal untuk seminar mahasiswa bimbingan Anda, {$mahasiswaName}.";
-            $url = route('dosen-pembimbing.seminar-approval.index');
+            $url = route('dosen.pembimbing.seminar-approval.index');
         }
 
         return [

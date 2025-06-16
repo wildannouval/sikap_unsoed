@@ -14,7 +14,7 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route('dosen-komisi.validasi-kp.index') }}"
+                <a href="{{ route('dosen.komisi.validasi-kp.index') }}"
                    class="flex items-center p-3 rounded-lg group
                           {{ Route::is('dosen-komisi.validasi-kp.*')
                              ? 'bg-blue-100 text-blue-700 dark:bg-gray-700 dark:text-blue-300'

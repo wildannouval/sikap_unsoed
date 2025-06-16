@@ -1,4 +1,4 @@
-<nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 fixed top-0 w-full z-50">
+<nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 fixed top-0 w-full z-30">
     <div class="px-3 lg:px-5 py-3"> {{-- Mengurangi padding horizontal sedikit --}}
         <div class="flex items-center justify-between">
             <div class="flex items-center justify-start">

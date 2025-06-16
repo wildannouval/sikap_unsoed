@@ -112,12 +112,15 @@ class PenjadwalanSeminarController extends Controller
 
         $request->validate([
             'tindakan_bapendik' => ['required', Rule::in(['tetapkan_jadwal', 'minta_revisi'])],
-            'tanggal_seminar' => 'required|date',
-            'jam_mulai' => 'required|date_format:H:i',
-            'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
-            'ruangan' => 'required|string|max:255|exists:ruangans,nama_ruangan', // Validasi bahwa ruangan ada di tabel
-            'catatan_komisi' => 'nullable|string|max:1000',
-            'ba_tanggal_pengambilan' => 'nullable|date|after_or_equal:tanggal_seminar',
+            // Validasi kondisional untuk penetapan jadwal
+            'tanggal_seminar' => 'required_if:tindakan_bapendik,tetapkan_jadwal|nullable|date',
+            'jam_mulai' => 'required_if:tindakan_bapendik,tetapkan_jadwal|nullable|date_format:H:i',
+            'jam_selesai' => 'required_if:tindakan_bapendik,tetapkan_jadwal|nullable|date_format:H:i|after:jam_mulai',
+            'ruangan' => 'required_if:tindakan_bapendik,tetapkan_jadwal|nullable|string|max:255|exists:ruangans,nama_ruangan',
+            // PERBAIKAN: Tanggal BA sekarang wajib jika jadwal ditetapkan
+            'ba_tanggal_pengambilan' => 'required_if:tindakan_bapendik,tetapkan_jadwal|nullable|date|after_or_equal:tanggal_seminar',
+            // Validasi kondisional untuk minta revisi
+            'catatan_komisi' => 'required_if:tindakan_bapendik,minta_revisi|nullable|string|max:1000',
         ]);
 
         if ($request->tindakan_bapendik === 'tetapkan_jadwal') {
@@ -128,7 +131,7 @@ class PenjadwalanSeminarController extends Controller
             $seminar->status_pengajuan = 'dijadwalkan_bapendik'; // Status baru
             $seminar->catatan_komisi = $request->catatan_komisi; // Catatan bisa opsional di sini
             $seminar->ba_tanggal_pengambilan = $request->ba_tanggal_pengambilan;
-            $message = 'Jadwal seminar berhasil ditetapkan.';
+
             // --- KIRIM NOTIFIKASI ---
             // 1. Notifikasi ke Mahasiswa
             $mahasiswaUser = $seminar->mahasiswa->user;
@@ -139,6 +142,7 @@ class PenjadwalanSeminarController extends Controller
             $dosenPembimbingUser->notify(new SeminarTelahDijadwalkan($seminar));
 
             $message = 'Jadwal seminar berhasil ditetapkan.';
+
         } elseif ($request->tindakan_bapendik === 'minta_revisi') {
             $seminar->status_pengajuan = 'revisi_jadwal_bapendik'; // Status baru
             $seminar->catatan_komisi = $request->catatan_komisi; // Wajib diisi

@@ -77,77 +77,71 @@
                                 @csrf
                                 @method('PUT')
                                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Aksi Penjadwalan Final</h3>
-
-                                <div class="px-0 pb-4">
-                                    @include('partials.session-messages') {{-- Untuk menampilkan error validasi --}}
-                                </div>
+                                <div class="px-0 pb-4">@include('partials.session-messages')</div>
 
                                 <div class="space-y-6">
                                     {{-- Pilihan Aksi --}}
                                     <div>
-                                        <label class="block mb-3 text-sm font-medium text-gray-900 dark:text-white">Pilih Tindakan</label>
-                                        <div class="flex items-center mb-4">
-                                            <input id="tetapkan_jadwal" type="radio" value="tetapkan_jadwal" name="tindakan_bapendik" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500" {{ old('tindakan_bapendik', 'tetapkan_jadwal') == 'tetapkan_jadwal' ? 'checked' : '' }}>
-                                            <label for="tetapkan_jadwal" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Tetapkan Jadwal Final</label>
-                                        </div>
-                                        <div class="flex items-center">
-                                            <input id="minta_revisi" type="radio" value="minta_revisi" name="tindakan_bapendik" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500" {{ old('tindakan_bapendik') == 'minta_revisi' ? 'checked' : '' }}>
-                                            <label for="minta_revisi" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Minta Mahasiswa Revisi Jadwal</label>
-                                        </div>
+                                        <label for="tindakan_bapendik" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Pilih Tindakan</label>
+                                        <select id="tindakan_bapendik" name="tindakan_bapendik" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600">
+                                            <option value="tetapkan_jadwal" {{ old('tindakan_bapendik', 'tetapkan_jadwal') == 'tetapkan_jadwal' ? 'selected' : '' }}>Tetapkan Jadwal Final</option>
+                                            <option value="minta_revisi" {{ old('tindakan_bapendik') == 'minta_revisi' ? 'selected' : '' }}>Minta Mahasiswa Revisi Jadwal</option>
+                                        </select>
                                     </div>
 
                                     {{-- Form Jadwal (ditampilkan/disembunyikan oleh JS) --}}
                                     <div id="form_jadwal_final" class="grid gap-6 md:grid-cols-1">
-                                        {{-- Input field tanggal, jam, ruangan seperti sebelumnya --}}
                                         <div>
                                             <label for="tanggal_seminar" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tanggal Seminar Final <span class="text-red-500">*</span></label>
-                                            <input type="date" name="tanggal_seminar" id="tanggal_seminar" class="bg-gray-50 border border-gray-300 ... @error('tanggal_seminar') border-red-500 @enderror" value="{{ old('tanggal_seminar', $seminar->tanggal_seminar ? \Carbon\Carbon::parse($seminar->tanggal_seminar)->format('Y-m-d') : '') }}">
+                                            <input type="date" name="tanggal_seminar" id="tanggal_seminar" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 @error('tanggal_seminar') border-red-500 @enderror" value="{{ old('tanggal_seminar', $seminar->tanggal_seminar ? \Carbon\Carbon::parse($seminar->tanggal_seminar)->format('Y-m-d') : '') }}">
                                             @error('tanggal_seminar') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                                         </div>
                                         <div>
                                             <label for="ruangan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Ruangan Seminar <span class="text-red-500">*</span></label>
-                                            <select name="ruangan" id="ruangan" class="bg-gray-50 border border-gray-300 ... @error('ruangan') border-red-500 @enderror">
+                                            <select name="ruangan" id="ruangan" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 @error('ruangan') border-red-500 @enderror">
                                                 <option value="">-- Pilih Ruangan Final --</option>
-                                                @if(isset($daftarRuangan))
-                                                    @foreach ($daftarRuangan as $itemRuangan)
-                                                        <option value="{{ $itemRuangan->nama_ruangan }}" {{ (old('ruangan', $seminar->ruangan) == $itemRuangan->nama_ruangan) ? 'selected' : '' }}>{{ $itemRuangan->nama_ruangan }}</option>
-                                                    @endforeach
-                                                @endif
+                                                @foreach ($daftarRuangan as $itemRuangan)
+                                                    <option value="{{ $itemRuangan->nama_ruangan }}" {{ (old('ruangan', $seminar->ruangan) == $itemRuangan->nama_ruangan) ? 'selected' : '' }}>{{ $itemRuangan->nama_ruangan }}</option>
+                                                @endforeach
                                             </select>
                                             @error('ruangan') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                                         </div>
                                         <div class="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label for="jam_mulai" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Jam Mulai <span class="text-red-500">*</span></label>
-                                                <input type="time" name="jam_mulai" id="jam_mulai" class="bg-gray-50 border border-gray-300 ... @error('jam_mulai') border-red-500 @enderror" value="{{ old('jam_mulai', $seminar->jam_mulai ? \Carbon\Carbon::parse($seminar->jam_mulai)->format('H:i') : '') }}">
+                                                <input type="time" name="jam_mulai" id="jam_mulai" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 @error('jam_mulai') border-red-500 @enderror" value="{{ old('jam_mulai', $seminar->jam_mulai ? \Carbon\Carbon::parse($seminar->jam_mulai)->format('H:i') : '') }}">
                                                 @error('jam_mulai') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                                             </div>
                                             <div>
                                                 <label for="jam_selesai" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Jam Selesai <span class="text-red-500">*</span></label>
-                                                <input type="time" name="jam_selesai" id="jam_selesai" class="bg-gray-50 border border-gray-300 ... @error('jam_selesai') border-red-500 @enderror" value="{{ old('jam_selesai', $seminar->jam_selesai ? \Carbon\Carbon::parse($seminar->jam_selesai)->format('H:i') : '') }}">
+                                                <input type="time" name="jam_selesai" id="jam_selesai" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 @error('jam_selesai') border-red-500 @enderror" value="{{ old('jam_selesai', $seminar->jam_selesai ? \Carbon\Carbon::parse($seminar->jam_selesai)->format('H:i') : '') }}">
                                                 @error('jam_selesai') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                                             </div>
                                         </div>
-                                    </div>
-                                    {{-- INPUT TANGGAL PENGAMBILAN BA BARU --}}
-                                    <div class="mb-6">
-                                        <label for="ba_tanggal_pengambilan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tanggal Pengambilan Berita Acara (Opsional)</label>
-                                        <input type="date" name="ba_tanggal_pengambilan" id="ba_tanggal_pengambilan" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600" value="{{ old('ba_tanggal_pengambilan', $seminar->ba_tanggal_pengambilan ? $seminar->ba_tanggal_pengambilan->format('Y-m-d') : '') }}">
-                                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Isi tanggal ini jika ingin memberitahu mahasiswa kapan mereka bisa mengambil berkas Berita Acara.</p>
-                                        @error('ba_tanggal_pengambilan') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
+                                        {{-- PERBAIKAN: Input Tanggal Pengambilan BA --}}
+                                        <div id="ba_ambil_div">
+                                            <label for="ba_tanggal_pengambilan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tanggal Pengambilan Berita Acara <span class="text-red-500">*</span></label>
+                                            <input type="date" name="ba_tanggal_pengambilan" id="ba_tanggal_pengambilan" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 @error('ba_tanggal_pengambilan') border-red-500 @enderror" value="{{ old('ba_tanggal_pengambilan', $seminar->ba_tanggal_pengambilan ? \Carbon\Carbon::parse($seminar->ba_tanggal_pengambilan)->format('Y-m-d') : '') }}">
+                                            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Tanggal mahasiswa bisa mengambil berkas BA.</p>
+                                            @error('ba_tanggal_pengambilan') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
+                                        </div>
                                     </div>
                                     {{-- Form Catatan --}}
                                     <div>
-                                        <label for="catatan_komisi" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Catatan dari Bapendik (Wajib diisi jika minta revisi)</label>
-                                        <textarea id="catatan_komisi" name="catatan_komisi" rows="3" class="block p-2.5 w-full ..." placeholder="Contoh: Jadwal pada tanggal tersebut sudah penuh, silakan koordinasi ulang dengan pembimbing untuk alternatif tanggal lain.">{{ old('catatan_komisi', $seminar->catatan_komisi) }}</textarea>
+                                        <label id="label_catatan_komisi" for="catatan_komisi" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                                        <textarea id="catatan_komisi" name="catatan_komisi" rows="3" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 @error('catatan_komisi') border-red-500 @enderror" placeholder="...">{{ old('catatan_komisi', $seminar->catatan_komisi) }}</textarea>
                                         @error('catatan_komisi') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                                     </div>
 
                                     <div class="flex items-center space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                        <button type="submit" class="inline-flex items-center text-white bg-blue-700 hover:bg-blue-800 ...">
+                                        {{-- Tombol Simpan Keputusan (Aksi Utama) --}}
+                                        <button type="submit" class="inline-flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition-colors duration-150">
+                                            <svg class="w-4 h-4 mr-2 -ml-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
                                             Simpan Keputusan
                                         </button>
-                                        <a href="{{ route('bapendik.penjadwalan-seminar.index') }}" class="inline-flex items-center text-gray-700 bg-white hover:bg-gray-100 ...">
+                                        {{-- Tombol Batal (Aksi Sekunder) --}}
+                                        <a href="{{ route('bapendik.penjadwalan-seminar.index') }}" class="inline-flex items-center text-gray-700 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700 transition-colors duration-150">
+                                            <svg class="w-4 h-4 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                             Batal
                                         </a>
                                     </div>
@@ -180,30 +174,45 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const radioTetapkan = document.getElementById('tetapkan_jadwal');
-            const radioRevisi = document.getElementById('minta_revisi');
+            const tindakanSelect = document.getElementById('tindakan_bapendik');
             const formJadwal = document.getElementById('form_jadwal_final');
-            const tanggalInputs = formJadwal.querySelectorAll('input, select');
+            const jadwalInputs = formJadwal.querySelectorAll('input, select');
             const catatanTextarea = document.getElementById('catatan_komisi');
-            const catatanLabel = document.querySelector('label[for="catatan_komisi"]');
+            const catatanLabel = document.getElementById('label_catatan_komisi');
+            // PERBAIKAN: Dapatkan elemen div untuk tanggal BA
+            const baAmbilDiv = document.getElementById('ba_ambil_div');
 
             function toggleJadwalForm() {
-                if (radioTetapkan.checked) {
+                if (tindakanSelect.value === 'tetapkan_jadwal') {
                     formJadwal.style.display = 'grid';
-                    tanggalInputs.forEach(input => input.required = true);
-                    if (catatanLabel) catatanLabel.textContent = "Catatan Tambahan dari Bapendik (Opsional)";
-                } else { // Jika radioRevisi yang checked
+                    jadwalInputs.forEach(input => {
+                        // Hanya set 'required' untuk input yang bukan tanggal BA jika ingin opsional
+                        if(input.name !== 'ba_tanggal_pengambilan') {
+                            input.required = true;
+                        }
+                    });
+                    // PERBAIKAN: Tanggal BA wajib
+                    document.getElementById('ba_tanggal_pengambilan').required = true;
+
+                    catatanLabel.innerHTML = 'Catatan Tambahan (Opsional)';
+                    catatanTextarea.required = false;
+                    catatanTextarea.placeholder = 'Catatan tambahan untuk mahasiswa atau dosen...';
+
+                } else { // Jika 'minta_revisi'
                     formJadwal.style.display = 'none';
-                    tanggalInputs.forEach(input => input.required = false);
-                    if (catatanLabel) catatanLabel.innerHTML = 'Catatan dari Bapendik <span class="text-red-500">*</span>';
+                    jadwalInputs.forEach(input => input.required = false);
+
+                    catatanLabel.innerHTML = 'Catatan dari Bapendik <span class="text-red-500">*</span>';
+                    catatanTextarea.required = true;
+                    catatanTextarea.placeholder = 'Jelaskan alasan kenapa mahasiswa harus merevisi jadwal...';
                 }
             }
 
-            if(radioTetapkan && radioRevisi) {
-                radioTetapkan.addEventListener('change', toggleJadwalForm);
-                radioRevisi.addEventListener('change', toggleJadwalForm);
-                toggleJadwalForm(); // Panggil saat halaman load untuk mengatur state awal
+            if (tindakanSelect) {
+                toggleJadwalForm();
+                tindakanSelect.addEventListener('change', toggleJadwalForm);
             }
+
             // Script untuk Modal Pembatalan
             const cancelSeminarModalEl = document.getElementById('cancelSeminarModal');
             if (cancelSeminarModalEl) {

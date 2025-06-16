@@ -9,6 +9,7 @@ use App\Models\Seminar;
 use App\Models\SuratPengantar;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -17,40 +18,42 @@ class DashboardController extends Controller
         // Data untuk "Tugas Mendesak"
         $countSuratMenungguValidasi = SuratPengantar::where('status_bapendik', 'menunggu')->count();
         $countSeminarMenungguJadwal = Seminar::where('status_pengajuan', 'disetujui_dospem')->count();
-        // Tambahkan hitungan lain jika ada tugas mendesak untuk Bapendik,
-        // misalnya Pengajuan KP yang statusnya 'disetujui_dospem' dan perlu dibuatkan SPK
-        // $countKpSiapSpk = PengajuanKp::where('status_komisi', 'diterima')
-        //                             ->whereNotNull('tanggal_diterima_komisi')
-        //                             // Tambahkan kondisi untuk cek apakah SPK sudah ada/dibuat jika perlu
-        //                             ->count();
+
+        // --- TAMBAHAN: Hitung SPK & Berita Acara yang perlu dicetak ---
+        // SPK perlu dicetak jika KP sudah diterima komisi TAPI belum ada tanggal cetak SPK.
+        $countSpkMenungguCetak = PengajuanKp::where('status_komisi', 'diterima')
+            ->whereNull('spk_dicetak_at')
+            ->count();
+
+        // Berita Acara perlu dicetak jika seminar sudah dijadwalkan.
+        $countBaMenungguCetak = Seminar::where('status_pengajuan', 'dijadwalkan_bapendik')->count();
 
 
         // Data untuk "Statistik Kunci"
-        $countMahasiswaAktifKp = PengajuanKp::where(function ($query) {
-            $query->where('status_kp', 'dalam_proses')
-                ->orWhere(function ($subQuery) {
-                    $subQuery->where('status_kp', 'pengajuan')
-                        ->where('status_komisi', 'diterima');
-                });
-        })
-            ->distinct('mahasiswa_id')
-            ->count();
-
+        $countMahasiswaAktifKp = PengajuanKp::where('status_kp', 'dalam_proses')->distinct('mahasiswa_id')->count();
         $countTotalJurusan = Jurusan::count();
         $countTotalMahasiswa = User::where('role', 'mahasiswa')->count();
         $countTotalDosen = User::where('role', 'dosen')->count();
 
+        // Data untuk "Aktivitas Terbaru"
+        $recentActivities = SuratPengantar::with('mahasiswa.user')
+            ->latest('tanggal_pengajuan')
+            ->take(5)
+            ->get();
 
         return view('bapendik.dashboard', compact(
             'countSuratMenungguValidasi',
             'countSeminarMenungguJadwal',
-            // 'countKpSiapSpk',
+            'countSpkMenungguCetak',         // <-- Kirim data baru ke view
+            'countBaMenungguCetak',          // <-- Kirim data baru ke view
             'countMahasiswaAktifKp',
             'countTotalJurusan',
             'countTotalMahasiswa',
-            'countTotalDosen'
+            'countTotalDosen',
+            'recentActivities'
         ));
     }
+
 //    public function index()
 //    {
 //        // Statistik Cepat

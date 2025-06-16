@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\DosenPembimbing;
+namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
 use App\Models\Konsultasi;
@@ -69,7 +69,7 @@ class KonsultasiKpController extends Controller
         $mahasiswaUser->notify(new KonsultasiDiverifikasi($konsultasi));
         // --- AKHIR BLOK NOTIFIKASI ---
 
-        return redirect()->route('dosen-pembimbing.bimbingan-kp.konsultasi.show', $konsultasi->pengajuan_kp_id)
-            ->with('success', 'Catatan konsultasi berhasil diperbarui/diverifikasi.');
+        return redirect()->route('dosen.pembimbing.bimbingan-kp.konsultasi.show', $konsultasi->pengajuan_kp_id)
+            ->with('success_modal_message', 'Catatan konsultasi berhasil diperbarui/diverifikasi.');
     }
 }

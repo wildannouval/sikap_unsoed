@@ -1,64 +1,41 @@
-<section>
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Profile Information') }}
-        </h2>
+<section class="flex flex-col items-center p-4 sm:p-6 text-center">
+    {{-- Tampilan Foto Profil dengan Live Preview --}}
+    <div class="relative">
+        <img id="photo-preview" class="w-32 h-32 rounded-full object-cover border-4 border-white dark:border-gray-700 shadow-lg"
+             src="{{ Auth::user()->profile_photo_url }}"
+             alt="{{ Auth::user()->name }}">
 
-        <p class="mt-1 text-sm text-gray-600">
-            {{ __("Update your account's profile information and email address.") }}
-        </p>
-    </header>
+        {{-- Tombol Lapis untuk Ganti Foto --}}
+        <label for="photo" class="absolute -bottom-2 -right-2 p-2 bg-blue-600 rounded-full cursor-pointer hover:bg-blue-700 transition-colors" title="Ganti Foto Profil">
+            {{-- Flowbite Icon: camera --}}
+            <svg class="w-4 h-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.5 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Zm-10 6.5h15a1 1 0 0 0 1-1V7.5a1 1 0 0 0-1-1h-2.5l-1.6-2.4a1 1 0 0 0-.8-.4H9.9a1 1 0 0 0-.8.4l-1.6 2.4H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1Z"/>
+            </svg>
+            {{-- Input file ini terhubung ke form utama di 'edit.blade.php' --}}
+            <input type="file" name="photo" id="photo" form="profile-information-form" class="hidden" accept="image/*">
+        </label>
+    </div>
 
-    <form id="send-verification" method="post" action="{{ route('verification.send') }}">
-        @csrf
-    </form>
+    {{-- Info Dasar Pengguna --}}
+    <div class="mt-4">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ Auth::user()->name }}</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400">{{ Auth::user()->email }}</p>
+        <span class="mt-2 inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">{{ ucfirst(Auth::user()->role) }}</span>
+    </div>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
-        @csrf
-        @method('patch')
-
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2" :messages="$errors->get('name')" />
+    {{-- Tombol Aksi Hapus Foto (hanya muncul jika ada foto) --}}
+    @if(Auth::user()->profile_photo_path)
+        <div class="mt-4">
+            {{-- Tombol ini akan men-submit form tersembunyi di bawah --}}
+            <button type="submit" form="delete-photo-form" class="text-xs text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500 hover:underline">
+                Hapus Foto
+            </button>
         </div>
-
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
-            <x-input-error class="mt-2" :messages="$errors->get('email')" />
-
-            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-gray-800">
-                        {{ __('Your email address is unverified.') }}
-
-                        <button form="send-verification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            {{ __('Click here to re-send the verification email.') }}
-                        </button>
-                    </p>
-
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600">
-                            {{ __('A new verification link has been sent to your email address.') }}
-                        </p>
-                    @endif
-                </div>
-            @endif
-        </div>
-
-        <div class="flex items-center gap-4">
-            <x-primary-button>{{ __('Save') }}</x-primary-button>
-
-            @if (session('status') === 'profile-updated')
-                <p
-                    x-data="{ show: true }"
-                    x-show="show"
-                    x-transition
-                    x-init="setTimeout(() => show = false, 2000)"
-                    class="text-sm text-gray-600"
-                >{{ __('Saved.') }}</p>
-            @endif
-        </div>
-    </form>
+    @endif
 </section>
+
+{{-- Form tersembunyi KHUSUS untuk aksi hapus foto --}}
+<form id="delete-photo-form" action="{{ route('profile.photo.destroy') }}" method="POST" class="hidden">
+    @csrf
+    @method('DELETE')
+</form>

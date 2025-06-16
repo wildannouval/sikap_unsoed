@@ -101,15 +101,15 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     @if($seminar->status_pengajuan == 'disetujui_dospem')
-                                        <span class="bg-sky-100 text-sky-800 ...">Menunggu Dijadwalkan</span>
+                                        <span class="bg-sky-100 text-sky-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-sky-900 dark:text-sky-300">Menunggu Dijadwalkan</span>
                                     @elseif($seminar->status_pengajuan == 'dijadwalkan_bapendik')
-                                        <span class="bg-green-100 text-green-800 ...">Sudah Dijadwalkan</span>
+                                        <span class="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-green-900 dark:text-green-300">Sudah Dijadwalkan</span>
                                     @elseif($seminar->status_pengajuan == 'revisi_jadwal_bapendik')
-                                        <span class="bg-orange-100 text-orange-800 ...">Revisi Jadwal</span>
-                                    @elseif($seminar->status_pengajuan == 'dibatalkan') {{-- TAMBAHKAN KONDISI INI --}}
-                                    <span class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-red-900 dark:text-red-300">Dibatalkan</span>
+                                        <span class="bg-orange-100 text-orange-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-orange-900 dark:text-orange-300">Revisi Jadwal</span>
+                                    @elseif($seminar->status_pengajuan == 'dibatalkan')
+                                        <span class="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-red-900 dark:text-red-300">Dibatalkan</span>
                                     @else
-                                        <span class="bg-gray-100 text-gray-800 ...">{{ ucfirst(str_replace('_', ' ', $seminar->status_pengajuan)) }}</span>
+                                        <span class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-gray-300">{{ ucfirst(str_replace('_', ' ', $seminar->status_pengajuan)) }}</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-center whitespace-nowrap">

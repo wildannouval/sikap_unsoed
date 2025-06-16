@@ -16,7 +16,7 @@
                 </div>
 
                 {{-- Form Search dan Filter --}}
-                <form method="GET" action="{{ route('dosen-komisi.validasi-kp.index') }}">
+                <form method="GET" action="{{ route('dosen.komisi.validasi-kp.index') }}">
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4">
                         <div>
                             <label for="search" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cari (Nama/NIM/Judul/Instansi)</label>
@@ -50,7 +50,7 @@
                                 Filter
                             </button>
                             @if(request()->filled('search') || request()->filled('status_komisi') || request()->filled('jurusan_id'))
-                                <a href="{{ route('dosen-komisi.validasi-kp.index') }}" class="ml-2 w-full md:w-auto text-gray-700 hover:text-white border border-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800 transition-colors duration-150">
+                                <a href="{{ route('dosen.komisi.validasi-kp.index') }}" class="ml-2 w-full md:w-auto text-gray-700 hover:text-white border border-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800 transition-colors duration-150">
                                     Reset
                                 </a>
                             @endif
@@ -93,7 +93,7 @@
                                 </td>
                                 <td class="px-6 py-4">{{ $pengajuan->dosenPembimbing->user->name ?? '-' }}</td>
                                 <td class="px-6 py-4 text-center">
-                                    <a href="{{ route('dosen-komisi.validasi-kp.edit', $pengajuan->id) }}" class="inline-flex items-center text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-1.5 dark:bg-blue-500 dark:hover:bg-blue-600 focus:outline-none dark:focus:ring-blue-800 transition-colors duration-150">
+                                    <a href="{{ route('dosen.komisi.validasi-kp.edit', $pengajuan->id) }}" class="inline-flex items-center text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-1.5 dark:bg-blue-500 dark:hover:bg-blue-600 focus:outline-none dark:focus:ring-blue-800 transition-colors duration-150">
                                         <svg class="w-3.5 h-3.5 mr-1.5 -ml-0.5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
                                         Proses/Detail
                                     </a>

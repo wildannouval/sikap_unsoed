@@ -75,7 +75,7 @@ class DashboardController extends Controller
                             $statusRingkas = "Pengajuan seminar Anda disetujui Dospem, menunggu penjadwalan oleh Bapendik.";
                             $aksiBerikutnyaText = "Lihat Status Seminar";
                             $aksiBerikutnyaRoute = route('mahasiswa.seminar.index');
-                        } elseif ($seminarTerkini->status_pengajuan == 'dijadwalkan_komisi') {
+                        } elseif ($seminarTerkini->status_pengajuan == 'dijadwalkan_bapendik') {
                             $statusRingkas = "Seminar Anda telah dijadwalkan!";
                             $pesanTambahan = "Jadwal: " . \Carbon\Carbon::parse($seminarTerkini->tanggal_seminar)->isoFormat('dddd, D MMM YY') . ", Pukul " . \Carbon\Carbon::parse($seminarTerkini->jam_mulai)->format('H:i') . " di Ruang " . $seminarTerkini->ruangan;
                             $aksiBerikutnyaText = "Persiapkan Seminar";

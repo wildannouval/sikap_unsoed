@@ -104,6 +104,9 @@ class PenggunaController extends Controller
             'nim' => ['required_if:role,mahasiswa', 'nullable', 'string', 'unique:mahasiswas,nim'],
             'tahun_masuk' => ['required_if:role,mahasiswa', 'nullable', 'numeric', 'digits:4'],
             'nidn' => ['required_if:role,dosen', 'nullable', 'string', 'unique:dosens,nidn'],
+            'no_hp' => ['nullable', 'string', 'max:20'],
+            'alamat' => ['nullable', 'string', 'max:1000'],
+            'bidang_keahlian' => ['nullable', 'string', 'max:255'],
         ]);
 
         // Gunakan Transaction untuk memastikan kedua query berhasil
@@ -123,12 +126,15 @@ class PenggunaController extends Controller
                     'jurusan_id' => $request->jurusan_id,
                     'nim' => $request->nim,
                     'tahun_masuk' => $request->tahun_masuk,
+                    'no_hp' => $request->no_hp,
+                    'alamat' => $request->alamat,
                 ]);
             } elseif ($request->role === 'dosen') {
                 Dosen::create([
                     'user_id' => $user->id,
                     'jurusan_id' => $request->jurusan_id,
                     'nidn' => $request->nidn,
+                    'bidang_keahlian' => $request->bidang_keahlian,
                 ]);
             }
         });

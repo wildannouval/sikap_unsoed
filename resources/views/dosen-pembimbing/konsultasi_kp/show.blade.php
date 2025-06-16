@@ -33,7 +33,7 @@
                             <p class="text-gray-900 dark:text-white font-medium">{{ $pengajuanKp->instansi_lokasi }}</p>
                         </div>
                     </div>
-                    <a href="{{ route('dosen-pembimbing.bimbingan-kp.index') }}" class="inline-flex items-center text-gray-700 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700 transition-colors duration-150">
+                    <a href="{{ route('dosen.pembimbing.bimbingan-kp.index') }}" class="inline-flex items-center text-gray-700 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700 transition-colors duration-150">
                         <svg class="w-4 h-4 mr-2 -ml-1 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5H1m0 0l4 4M1 5l4-4"/></svg>
                         Kembali ke Daftar Bimbingan
                     </a>
@@ -107,7 +107,7 @@
                                                 data-konsultasi-id="{{ $konsultasi->id }}"
                                                 data-catatan-dosen="{{ $konsultasi->catatan_dosen ?? '' }}"
                                                 data-is-verified="{{ $konsultasi->diverifikasi ? '1' : '0' }}"
-                                                data-action-url="{{ route('dosen-pembimbing.konsultasi.verifikasi', $konsultasi->id) }}"
+                                                data-action-url="{{ route('dosen.pembimbing.konsultasi.verifikasi', $konsultasi->id) }}"
                                                 class="inline-flex items-center text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-1.5 dark:bg-blue-500 dark:hover:bg-blue-600 focus:outline-none dark:focus:ring-blue-800 transition-colors duration-150">
                                             <svg class="w-3.5 h-3.5 mr-1.5 -ml-0.5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path></svg>
                                             {{ $konsultasi->diverifikasi || $konsultasi->catatan_dosen ? 'Edit' : 'Proses' }}

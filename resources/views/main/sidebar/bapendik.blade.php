@@ -1,4 +1,4 @@
-<aside aria-label="Sidebar" class="bg-white dark:bg-gray-800 border-b sm:border-r sm:border-b-0 border-gray-200 dark:border-gray-700 fixed top-0 -translate-x-full h-screen left-0 pt-16 sm:pt-20 sm:translate-x-0 transition-transform w-64 z-40" id="logo-sidebar">
+<aside aria-label="Sidebar" class="bg-white dark:bg-gray-800 border-b sm:border-r sm:border-b-0 border-gray-200 dark:border-gray-700 fixed top-0 -translate-x-full h-screen left-0 pt-16 sm:pt-20 sm:translate-x-0 transition-transform w-64 z-20" id="logo-sidebar">
     <div class="h-full px-4 pb-4 overflow-y-auto bg-white dark:bg-gray-800">
         <ul class="space-y-1.5 font-medium mt-5 sm:mt-0">
             <li>
@@ -74,7 +74,23 @@
                     <span class="flex-1 ms-3 whitespace-nowrap {{ Route::is('bapendik.penjadwalan-seminar.*') ? 'font-semibold' : '' }}">Penjadwalan Seminar</span>
                 </a>
             </li>
-
+            <li>
+                <a href="{{ route('bapendik.laporan.index') }}"
+                   class="flex items-center p-3 rounded-lg group
+              {{ Route::is('bapendik.laporan.*')
+                 ? 'bg-blue-100 text-blue-700 dark:bg-gray-700 dark:text-blue-300'
+                 : 'text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                    {{-- Flowbite Icon: document-chart-bar --}}
+                    <svg class="shrink-0 w-5 h-5 transition duration-75
+                    {{ Route::is('bapendik.laporan.*')
+                       ? 'text-blue-700 dark:text-blue-300'
+                       : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white' }}"
+                         aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 4h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3m0 3h6m-3 5h0m0 4h0m0-8v8"/>
+                    </svg>
+                    <span class="flex-1 ms-3 whitespace-nowrap {{ Route::is('bapendik.laporan.*') ? 'font-semibold' : '' }}">Export Laporan</span>
+                </a>
+            </li>
             {{-- Menu Umum (termasuk Semua Jadwal Seminar dan Profil) --}}
             <li class="pt-4 mt-4 space-y-1.5 font-medium border-t border-gray-200 dark:border-gray-700">
                 <span class="ms-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Umum</span>

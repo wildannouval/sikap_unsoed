@@ -29,7 +29,7 @@ class BuktiDistribusiDiunggah extends Notification
         if ($notifiable->role === 'bapendik') {
             $url = route('bapendik.spk.index'); // Atau halaman rekap KP Bapendik
         } else { // Untuk Dosen
-            $url = route('dosen-pembimbing.bimbingan-kp.konsultasi.show', $this->distribusi->pengajuan_kp_id);
+            $url = route('dosen.pembimbing.bimbingan-kp.konsultasi.show', $this->distribusi->pengajuan_kp_id);
         }
 
         return [

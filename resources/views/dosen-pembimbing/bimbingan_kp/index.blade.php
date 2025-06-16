@@ -9,6 +9,12 @@
                 <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4 border-b dark:border-gray-700">
                     <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Daftar Mahasiswa Bimbingan Kerja Praktek Aktif</h2>
                     {{-- Tidak ada tombol Tambah di sini karena mahasiswa ditugaskan oleh Komisi --}}
+                    <a href="{{ route('dosen.pembimbing.bimbingan-kp.export', request()->query()) }}" class="inline-flex items-center text-white bg-green-600 hover:bg-green-700 font-medium rounded-lg text-sm px-5 py-2.5">
+                        <svg class="w-5 h-5 mr-2 -ml-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 15v2a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-2m-8 1V4m0 12-4-4m4 4 4-4"/>
+                        </svg>
+                        Export Bimbingan
+                    </a>
                 </div>
 
                 <div class="px-4 pt-4">
@@ -16,7 +22,7 @@
                 </div>
 
                 {{-- Form Search --}}
-                <form method="GET" action="{{ route('dosen-pembimbing.bimbingan-kp.index') }}">
+                <form method="GET" action="{{ route('dosen.pembimbing.bimbingan-kp.index') }}">
                     <div class="flex flex-col md:flex-row items-end space-y-3 md:space-y-0 md:space-x-4 p-4">
                         <div class="w-full md:w-1/2">
                             <label for="search_bimbingan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Cari Mahasiswa/Judul KP</label>
@@ -32,7 +38,7 @@
                                 Cari
                             </button>
                             @if(request()->filled('search'))
-                                <a href="{{ route('dosen-pembimbing.bimbingan-kp.index') }}" class="ml-2 w-full md:w-auto text-gray-700 hover:text-white border border-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800 transition-colors duration-150">
+                                <a href="{{ route('dosen.pembimbing.bimbingan-kp.index') }}" class="ml-2 w-full md:w-auto text-gray-700 hover:text-white border border-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800 transition-colors duration-150">
                                     Reset
                                 </a>
                             @endif
@@ -69,7 +75,7 @@
                                     <span class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">{{ ucfirst(str_replace('_', ' ', $pengajuan->status_kp)) }}</span>
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <a href="{{ route('dosen-pembimbing.bimbingan-kp.konsultasi.show', $pengajuan->id) }}" class="inline-flex items-center text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-xs px-3 py-1.5 dark:bg-indigo-500 dark:hover:bg-indigo-600 focus:outline-none dark:focus:ring-indigo-800 transition-colors duration-150">
+                                    <a href="{{ route('dosen.pembimbing.bimbingan-kp.konsultasi.show', $pengajuan->id) }}" class="inline-flex items-center text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-xs px-3 py-1.5 dark:bg-indigo-500 dark:hover:bg-indigo-600 focus:outline-none dark:focus:ring-indigo-800 transition-colors duration-150">
                                         <svg class="w-3.5 h-3.5 mr-1.5 -ml-0.5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M18 5.923A1.99 1.99 0 0 0 16.084 4H3.916A1.99 1.99 0 0 0 2 5.923V14.08A1.99 1.99 0 0 0 3.916 16h12.168A1.99 1.99 0 0 0 18 14.079V5.923Zm-7.15.619L14.084 10h-3.5L7.15 6.542ZM5.014 13.318a1.001 1.001 0 0 1-.992-.993V7.671a1 1 0 0 1 .992-.993l4.893-2.446a1 1 0 0 1 1.21.001l4.893 2.446a1 1 0 0 1 .992.993v4.654a1.001 1.001 0 0 1-.992.993L5.014 13.318Z"/></svg>
                                         Lihat Konsultasi
                                     </a>

@@ -32,7 +32,7 @@ class SeminarTelahDijadwalkan extends Notification
             $url = route('mahasiswa.seminar.index');
         } else { // Untuk dosen
             $message = "Jadwal seminar untuk mahasiswa bimbingan Anda, {$mahasiswaName}, telah ditetapkan.";
-            $url = route('dosen-pembimbing.penilaian-seminar.index');
+            $url = route('dosen.pembimbing.penilaian-seminar.index');
         }
 
         return [

@@ -41,7 +41,7 @@ class SeminarKpController extends Controller
                 $query->where('diverifikasi', true);
             }])
             ->with(['seminars' => function($q) { // Untuk cek seminar aktif
-                $q->whereIn('status_pengajuan', ['diajukan_mahasiswa', 'disetujui_dospem', 'dijadwalkan_komisi']);
+                $q->whereIn('status_pengajuan', ['diajukan_mahasiswa', 'disetujui_dospem', 'dijadwalkan_bapendik']);
             }])
             ->first();
 

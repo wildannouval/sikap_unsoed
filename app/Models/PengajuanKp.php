@@ -78,7 +78,7 @@ class PengajuanKp extends Model
     // Accessor untuk mengecek apakah sudah ada pengajuan seminar aktif
     public function getHasActiveSeminarAttribute()
     {
-        return $this->seminars()->whereIn('status_pengajuan', ['diajukan_mahasiswa', 'disetujui_dospem', 'dijadwalkan_komisi'])->exists();
+        return $this->seminars()->whereIn('status_pengajuan', ['diajukan_mahasiswa', 'disetujui_dospem', 'dijadwalkan_bapendik'])->exists();
     }
 
     public function distribusi()
@@ -92,7 +92,6 @@ class PengajuanKp extends Model
         return $this->distribusi()->exists();
     }
 
-    // Helper untuk konversi nilai angka ke huruf (bisa juga ditaruh di Service Class jika kompleks)
     // Helper untuk konversi nilai angka ke huruf (bisa juga ditaruh di Service Class jika kompleks)
     public static function konversiNilaiKeHuruf(float $nilaiAngka = null): ?string
     {

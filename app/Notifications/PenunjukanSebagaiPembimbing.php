@@ -25,7 +25,7 @@ class PenunjukanSebagaiPembimbing extends Notification
             'pengajuan_kp_id' => $this->pengajuanKp->id,
             'mahasiswa_name' => $this->pengajuanKp->mahasiswa->user->name,
             'message' => 'Anda telah ditunjuk sebagai Dosen Pembimbing untuk mahasiswa: ' . $this->pengajuanKp->mahasiswa->user->name . '.',
-            'url' => route('dosen-pembimbing.bimbingan-kp.konsultasi.show', $this->pengajuanKp->id),
+            'url' => route('dosen.pembimbing.bimbingan-kp.konsultasi.show', $this->pengajuanKp->id),
             'icon' => 'fa-solid fa-user-check',
         ];
     }

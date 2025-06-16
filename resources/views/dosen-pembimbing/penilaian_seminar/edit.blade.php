@@ -57,7 +57,7 @@
                 </div>
 
                 {{-- Form Input Hasil Seminar --}}
-                <form action="{{ route('dosen-pembimbing.penilaian-seminar.updateHasil', $seminar->id) }}" method="POST" enctype="multipart/form-data" class="p-4 sm:p-6">
+                <form action="{{ route('dosen.pembimbing.penilaian-seminar.updateHasil', $seminar->id) }}" method="POST" enctype="multipart/form-data" class="p-4 sm:p-6">
                     @csrf
                     @method('PUT')
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Formulir Penilaian Seminar</h3>
@@ -95,7 +95,7 @@
                             <svg class="w-4 h-4 mr-2 -ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
                             Simpan Hasil Seminar
                         </button>
-                        <a href="{{ route('dosen-pembimbing.penilaian-seminar.index') }}" class="inline-flex items-center text-gray-700 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700 transition-colors duration-150">
+                        <a href="{{ route('dosen.pembimbing.penilaian-seminar.index') }}" class="inline-flex items-center text-gray-700 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700 transition-colors duration-150">
                             Kembali
                         </a>
                     </div>

@@ -1,7 +1,7 @@
 @extends('main.app')
 
 @php
-    $isEditable = ($pengajuanKp->status_komisi === 'direview');
+    $isEditable = in_array($pengajuanKp->status_komisi, ['direview', 'diterima', 'ditolak']);
     $pageTitle = $isEditable ? 'Proses Validasi Pengajuan KP' : 'Detail Validasi Pengajuan KP';
 @endphp
 
@@ -72,7 +72,7 @@
                         <div class="p-6 border border-gray-200 dark:border-gray-700 rounded-lg">
                             @if ($isEditable)
                                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Form Validasi oleh Komisi</h3>
-                                <form action="{{ route('dosen-komisi.validasi-kp.update', $pengajuanKp->id) }}" method="POST" class="space-y-6">
+                                <form action="{{ route('dosen.komisi.validasi-kp.update', $pengajuanKp->id) }}" method="POST" class="space-y-6">
                                     @csrf
                                     @method('PUT')
                                     <div>
@@ -85,7 +85,7 @@
                                         @error('status_komisi') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                                     </div>
 
-                                    <div id="dosen_pembimbing_div" style="{{ old('status_komisi', $pengajuanKp->status_komisi) == 'diterima' ? '' : 'display:none;' }}">
+                                    <div id="dosen_pembimbing_div" style="display:none;">
                                         <label for="dosen_pembimbing_id" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Pilih Dosen Pembimbing <span class="text-red-500">*</span></label>
                                         <select name="dosen_pembimbing_id" id="dosen_pembimbing_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600">
                                             <option value="">-- Pilih Dosen --</option>
@@ -100,20 +100,20 @@
                                         @error('dosen_pembimbing_id') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                                     </div>
 
-                                    <div id="tanggal_kp_div" class="space-y-4" style="{{ old('status_komisi', $pengajuanKp->status_komisi) == 'diterima' ? '' : 'display:none;' }}">
+                                    <div id="tanggal_kp_div" class="space-y-4" style="display:none;">
                                         <div>
-                                            <label for="tanggal_mulai" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tanggal Mulai KP (Opsional)</label>
-                                            <input type="date" name="tanggal_mulai" id="tanggal_mulai" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600" value="{{ old('tanggal_mulai', $pengajuanKp->tanggal_mulai ? \Carbon\Carbon::parse($pengajuanKp->tanggal_mulai)->format('Y-m-d') : '') }}">
-                                            @error('tanggal_mulai') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
+                                            <label for="tanggal_mulai_kp" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tanggal Mulai KP (Opsional)</label>
+                                            <input type="date" name="tanggal_mulai_kp" id="tanggal_mulai_kp" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600" value="{{ old('tanggal_mulai_kp', $pengajuanKp->tanggal_mulai ? \Carbon\Carbon::parse($pengajuanKp->tanggal_mulai)->format('Y-m-d') : '') }}">
+                                            @error('tanggal_mulai_kp') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                                         </div>
                                         <div>
-                                            <label for="tanggal_selesai" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tanggal Selesai KP (Opsional)</label>
-                                            <input type="date" name="tanggal_selesai" id="tanggal_selesai" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600" value="{{ old('tanggal_selesai', $pengajuanKp->tanggal_selesai ? \Carbon\Carbon::parse($pengajuanKp->tanggal_selesai)->format('Y-m-d') : '') }}">
-                                            @error('tanggal_selesai') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
+                                            <label for="tanggal_selesai_kp" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tanggal Selesai KP (Opsional)</label>
+                                            <input type="date" name="tanggal_selesai_kp" id="tanggal_selesai_kp" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600" value="{{ old('tanggal_selesai_kp', $pengajuanKp->tanggal_selesai ? \Carbon\Carbon::parse($pengajuanKp->tanggal_selesai)->format('Y-m-d') : '') }}">
+                                            @error('tanggal_selesai_kp') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
                                         </div>
                                     </div>
 
-                                    <div id="alasan_ditolak_div" class="mb-6" style="{{ old('status_komisi', $pengajuanKp->status_komisi) == 'ditolak' ? '' : 'display:none;' }}">
+                                    <div id="alasan_ditolak_div" class="mb-6" style="display:none;">
                                         <label for="alasan_ditolak" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Alasan Penolakan<span class="text-red-500">*</span></label>
                                         <textarea id="alasan_ditolak" name="alasan_ditolak" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600" placeholder="Jelaskan alasan penolakan di sini...">{{ old('alasan_ditolak', $pengajuanKp->alasan_ditolak) }}</textarea>
                                         @error('alasan_ditolak') <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p> @enderror
@@ -121,9 +121,13 @@
 
                                     <div class="flex items-center space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                                         <button type="submit" class="inline-flex items-center text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition-colors duration-150">
+                                            {{-- TAMBAHAN: Ikon Simpan --}}
+                                            <svg class="w-4 h-4 mr-2 -ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
                                             Simpan Validasi
                                         </button>
-                                        <a href="{{ route('dosen-komisi.validasi-kp.index') }}" class="inline-flex items-center text-gray-700 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700 transition-colors duration-150">
+                                        <a href="{{ route('dosen.komisi.validasi-kp.index') }}" class="inline-flex items-center text-gray-700 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700 transition-colors duration-150">
+                                            {{-- TAMBAHAN: Ikon Batal --}}
+                                            <svg class="w-4 h-4 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                             Batal
                                         </a>
                                     </div>
@@ -149,12 +153,12 @@
                                     @if($pengajuanKp->status_komisi == 'ditolak' && $pengajuanKp->alasan_tidak_layak)
                                         <div>
                                             <p class="text-gray-500 dark:text-gray-400">Alasan Penolakan:</p>
-                                            <p class="text-gray-900 dark:text-white whitespace-pre-wrap">{{ $pengajuanKp->alasan_tidak_layak }}</p>
+                                            <p class="]text-gray-900 dark:text-white whitespace-pre-wrap">{{ $pengajuanKp->alasan_tidak_layak }}</p>
                                         </div>
                                     @endif
                                 </div>
                                 <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                                    <a href="{{ route('dosen-komisi.validasi-kp.index') }}" class="inline-flex items-center text-gray-700 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700 transition-colors duration-150">
+                                    <a href="{{ route('dosen.komisi.validasi-kp.index') }}" class="inline-flex items-center text-gray-700 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 border border-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700 transition-colors duration-150">
                                         <svg class="w-4 h-4 mr-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5H1m0 0l4 4M1 5l4-4"/></svg>
                                         Kembali ke Daftar
                                     </a>
@@ -177,35 +181,36 @@
             const dosenPembimbingSelect = document.getElementById('dosen_pembimbing_id');
             const tanggalKpDiv = document.getElementById('tanggal_kp_div');
             const alasanDitolakDiv = document.getElementById('alasan_ditolak_div');
-            const alasanDitolakTextarea = document.getElementById('alasan_tidak_layak');
+            const alasanDitolakTextarea = document.getElementById('alasan_ditolak');
 
             function toggleValidationFields() {
-                if(statusSelect){ // Pastikan elemennya ada
-                    if (statusSelect.value === 'diterima') {
-                        dosenPembimbingDiv.style.display = 'block';
-                        dosenPembimbingSelect.required = true;
-                        tanggalKpDiv.style.display = 'block';
-                        alasanDitolakDiv.style.display = 'none';
-                        alasanDitolakTextarea.required = false;
-                    } else if (statusSelect.value === 'ditolak') {
-                        dosenPembimbingDiv.style.display = 'none';
-                        dosenPembimbingSelect.required = false;
-                        tanggalKpDiv.style.display = 'none';
-                        alasanDitolakDiv.style.display = 'block';
-                        alasanDitolakTextarea.required = true;
-                    } else { // direview atau lainnya
-                        dosenPembimbingDiv.style.display = 'none';
-                        dosenPembimbingSelect.required = false;
-                        tanggalKpDiv.style.display = 'none';
-                        alasanDitolakDiv.style.display = 'none';
-                        alasanDitolakTextarea.required = false;
-                    }
+                if(!statusSelect) return; // Keluar jika elemen tidak ditemukan
+
+                const selectedStatus = statusSelect.value;
+
+                // Sembunyikan semua dan non-aktifkan semua input terlebih dahulu
+                dosenPembimbingDiv.style.display = 'none';
+                dosenPembimbingSelect.required = false;
+                tanggalKpDiv.style.display = 'none';
+                alasanDitolakDiv.style.display = 'none';
+                alasanDitolakTextarea.required = false;
+
+                // Tampilkan yang relevan berdasarkan status
+                if (selectedStatus === 'diterima') {
+                    dosenPembimbingDiv.style.display = 'block';
+                    dosenPembimbingSelect.required = true;
+                    tanggalKpDiv.style.display = 'block'; // Tanggal tetap opsional (tidak ada .required)
+                } else if (selectedStatus === 'ditolak') {
+                    alasanDitolakDiv.style.display = 'block';
+                    alasanDitolakTextarea.required = true;
                 }
             }
-            if(statusSelect){
-                toggleValidationFields(); // Panggil saat halaman load
-                statusSelect.addEventListener('change', toggleValidationFields);
-            }
+
+            // Panggil fungsi saat halaman dimuat untuk mengatur state awal
+            toggleValidationFields();
+
+            // Tambahkan event listener untuk memanggil fungsi setiap kali pilihan berubah
+            statusSelect.addEventListener('change', toggleValidationFields);
         });
     </script>
 @endpush

@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\DosenPembimbing;
+namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
 use App\Models\PengajuanKp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Exports\BimbinganKpExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class BimbinganKpController extends Controller
 {
@@ -31,5 +33,14 @@ class BimbinganKpController extends Controller
         $pengajuanKps = $query->paginate(10)->appends($request->query());
 
         return view('dosen-pembimbing.bimbingan_kp.index', compact('pengajuanKps', 'request'));
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $dosenId = auth()->user()->dosen->id;
+        $searchTerm = $request->query('search');
+        $fileName = 'laporan-bimbingan-kp-' . auth()->user()->name . '-' . now()->format('d-m-Y') . '.xlsx';
+
+        return Excel::download(new BimbinganKpExport($dosenId, $searchTerm), $fileName);
     }
 }

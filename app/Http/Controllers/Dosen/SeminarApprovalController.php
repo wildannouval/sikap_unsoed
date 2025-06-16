@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\DosenPembimbing;
+namespace App\Http\Controllers\Dosen;
 
 use App\Http\Controllers\Controller;
 use App\Models\Seminar;
+use App\Notifications\ResponPengajuanSeminar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -91,7 +92,7 @@ class SeminarApprovalController extends Controller
         }
         // Hanya bisa memproses jika statusnya 'diajukan_mahasiswa'
         if ($seminar->status_pengajuan !== 'diajukan_mahasiswa') {
-            return redirect()->route('dosen-pembimbing.seminar-approval.index')
+            return redirect()->route('dosen.pembimbing.seminar-approval.index')
                 ->with('error', 'Pengajuan seminar ini sudah diproses sebelumnya.');
         }
 
@@ -122,7 +123,7 @@ class SeminarApprovalController extends Controller
         $mahasiswaUser->notify(new ResponPengajuanSeminar($seminar));
         // --- AKHIR BLOK NOTIFIKASI ---
 
-        return redirect()->route('dosen-pembimbing.seminar-approval.index')
+        return redirect()->route('dosen.pembimbing.seminar-approval.index')
             ->with('success_modal_message', 'Pengajuan seminar mahasiswa telah berhasil diproses.');
     }
 }

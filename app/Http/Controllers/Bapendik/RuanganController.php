@@ -59,7 +59,7 @@ class RuanganController extends Controller
         ]);
 
         return redirect()->route('bapendik.ruangan.index')
-            ->with('success', 'Data ruangan seminar berhasil ditambahkan.');
+            ->with('success_modal_message', 'Data ruangan seminar berhasil ditambahkan.');
     }
 
     /**
@@ -102,7 +102,7 @@ class RuanganController extends Controller
         ]);
 
         return redirect()->route('bapendik.ruangan.index')
-            ->with('success', 'Data ruangan seminar berhasil diperbarui.');
+            ->with('success_modal_message', 'Data ruangan seminar berhasil diperbarui.');
     }
 
     /**
@@ -122,7 +122,7 @@ class RuanganController extends Controller
         try {
             $ruangan->delete();
             return redirect()->route('bapendik.ruangan.index')
-                ->with('success', 'Ruangan seminar berhasil dihapus.');
+                ->with('success_modal_message', 'Ruangan seminar berhasil dihapus.');
         } catch (\Illuminate\Database\QueryException $e) {
             // Tangani error jika ada constraint foreign key yang menghalangi penghapusan
             return redirect()->route('bapendik.ruangan.index')
