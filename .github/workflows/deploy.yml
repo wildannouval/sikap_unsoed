@@ -26,30 +26,14 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
-            # 1. Pindah ke direktori aplikasi di server
             cd /var/www/sikap
-
-            # 2. Aktifkan maintenance mode
             sudo php artisan down
-
-            # 3. Tarik kode terbaru dari branch main
-            sudo git pull origin main
-
-            # 4. Instal dependensi PHP (termasuk dev-dependencies seperti Faker)
+            git pull origin main
             sudo composer install --optimize-autoloader
-
-            # 5. Instal dependensi JS & build aset frontend
-            sudo npm install
-            sudo npm run build
-
-            # 6. Jalankan migrasi database jika ada perubahan
+            sudo npm install && sudo npm run build
             sudo php artisan migrate --force
-
-            # 7. Hapus cache lama dan buat cache baru untuk produksi
             sudo php artisan optimize:clear
             sudo php artisan config:cache
             sudo php artisan route:cache
             sudo php artisan view:cache
-
-            # 8. Nonaktifkan maintenance mode, aplikasi kembali online
             sudo php artisan up
