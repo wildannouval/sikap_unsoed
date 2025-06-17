@@ -8,32 +8,50 @@ on:
 
 jobs:
   deploy:
-    # Menggunakan server virtual Ubuntu terbaru dari GitHub untuk menjalankan proses
     runs-on: ubuntu-latest
 
-    # Langkah-langkah yang akan dieksekusi
     steps:
-      # Langkah ini hanya untuk memastikan workflow ini bisa berjalan
+      # 1. Mengambil kode dari repository Anda (langkah wajib dari GitHub Actions)
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Langkah utama: Login ke server dan jalankan semua perintah di sana
-      - name: Connect to VPS and Deploy
+      # 2. Login ke VPS dan jalankan semua perintah deployment
+      - name: Connect and Deploy
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
+          username: ${{ secrets.SSH_USERNAME }} # Ini akan berisi 'rootnori'
           key: ${{ secrets.SSH_KEY }}
           port: 22
           script: |
+            # Pindah ke direktori aplikasi
             cd /var/www/sikap
-            sudo php artisan down
+
+            # Aktifkan maintenance mode (tanpa sudo)
+            php artisan down
+
+            # Tarik kode terbaru dari branch main (tanpa sudo)
             git pull origin main
-            sudo composer install --optimize-autoloader
-            sudo npm install && sudo npm run build
-            sudo php artisan migrate --force
-            sudo php artisan optimize:clear
-            sudo php artisan config:cache
-            sudo php artisan route:cache
-            sudo php artisan view:cache
-            sudo php artisan up
+
+            # Instal dependensi PHP (tanpa sudo)
+            composer install --optimize-autoloader
+
+            # Instal dependensi JS & build aset frontend (tanpa sudo)
+            npm install
+            npm run build
+
+            # Jalankan migrasi database (tanpa sudo)
+            php artisan migrate --force
+
+            # Hapus cache lama dan buat cache baru (tanpa sudo)
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            # LANGKAH KUNCI: Atur hak akses agar web server bisa menulis log & cache
+            # Kita hanya butuh 'sudo' untuk perintah ini karena mengubah kepemilikan file
+            sudo chown -R www-data:www-data storage bootstrap/cache
+
+            # Nonaktifkan maintenance mode (tanpa sudo)
+            php artisan up
