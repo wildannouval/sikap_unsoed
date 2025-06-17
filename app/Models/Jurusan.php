@@ -26,6 +26,6 @@ class Jurusan extends Model
     // Relasi: Satu jurusan memiliki banyak dosen
     public function dosens()
     {
-        return $this->hasMany(dosen::class);
+        return $this->hasMany(Dosen::class);
     }
 }
